@@ -46,7 +46,7 @@ const api = {
   get: (url: string, params?: object) => apiClient.get(url, { params }),
   post: (url: string, data?: object) => apiClient.post(url, data),
   put: (url: string, data?: object) => apiClient.put(url, data),
-  patch: (url: string, data?: object) => apiClient.patch(url, data),
+  patch: (url: string, data?: object, config?: object) => apiClient.patch(url, data, config),
   delete: (url: string) => apiClient.delete(url),
 };
 

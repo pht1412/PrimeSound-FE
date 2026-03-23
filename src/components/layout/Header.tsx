@@ -1,14 +1,45 @@
 // src/components/layout/Header.tsx
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { userService } from '../../services/userService';
+
+const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
 export const Header = () => {
+  const [user, setUser] = useState<any>(null);
+
+  // Hàm chuẩn hóa đường dẫn Avatar
+  const getAvatarUrl = (url: string) => {
+    if (!url) return "https://ui-avatars.com/api/?name=User&background=1ed760&color=fff"; // Ảnh mặc định xịn xò nếu không có avatar
+    if (url.startsWith('http')) return url;
+    const filename = url.replace(/^.*[\\\/]/, '');
+    return `${BACKEND_URL}/uploads/${filename}`;
+  };
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      // Kiểm tra xem có token trong localStorage không thì mới gọi API
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      try {
+        const userData = await userService.getMe();
+        setUser(userData); // Lưu thông tin user vào state
+      } catch (error) {
+        console.error("Lỗi khi tải thông tin người dùng:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
   return (
     <header className="flex items-center justify-between w-full h-[80px] px-8 bg-transparent">
-      
+
       {/* Cụm bên trái: Navigation Links */}
       <nav className="flex items-center gap-8">
-        <Link to="/music" className="text-[#1ed760] font-medium text-[15px] tracking-wide hover:opacity-80 transition">
-          MUSIC
+        <Link to="/home" className="text-[#1ed760] font-medium text-[15px] tracking-wide hover:opacity-80 transition">
+          HOME
         </Link>
         <Link to="/live" className="text-white font-medium text-[15px] tracking-wide hover:text-[#1ed760] transition">
           LIVE
@@ -44,7 +75,6 @@ export const Header = () => {
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
           </svg>
-          {/* Dấu chấm đỏ thông báo (Tùy chọn) */}
           <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>
 
@@ -56,17 +86,21 @@ export const Header = () => {
           </svg>
         </button>
 
-        {/* User Info (Tạm thời cứng, Giai đoạn 4 sẽ map với API) */}
-        <div className="flex items-center gap-3 cursor-pointer hover:bg-[#202020] px-3 py-1.5 rounded-full transition">
+        {/* User Info (Đã map dữ liệu API và Gắn Link chuyển trang) */}
+        <Link
+          to="/home/profile"
+          className="flex items-center gap-3 cursor-pointer hover:bg-[#202020] px-3 py-1.5 rounded-full transition"
+        >
           <img
-            src="https://via.placeholder.com/40" // Thay URL avatar tạm
+            src={getAvatarUrl(user?.avatar)}
             alt="User Avatar"
-            className="w-9 h-9 rounded-full object-cover"
+            className="w-9 h-9 rounded-full object-cover bg-white"
           />
-          <span className="text-white text-sm font-medium">tt.thuat410</span>
-        </div>
+          <span className="text-white text-sm font-medium">
+            {user ? user.name : "Guest"}
+          </span>
+        </Link>
       </div>
-      
     </header>
   );
 };

@@ -128,3 +128,32 @@
     transform: translateY(calc(-100% - var(--gap)));
   }
 }
+/* ===== CUSTOM SCROLLBAR CHUẨN SPOTIFY ===== */
+/* Áp dụng cho bất kỳ khối nào có class 'custom-scrollbar' */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;  /* Độ rộng thanh cuộn dọc */
+  height: 8px; /* Độ rộng thanh cuộn ngang */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Nền trong suốt để tàng hình khi không cuộn */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2); /* Màu xám mờ mờ tinh tế */
+  border-radius: 10px; /* Bo cong tròn trịa 2 đầu */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.4); /* Sáng lên một chút khi rê chuột vào thanh cuộn */
+}
+
+/* Ẩn thanh cuộn ở một số trường hợp đặc biệt (nếu cần) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
