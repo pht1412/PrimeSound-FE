@@ -1,17 +1,19 @@
 // src/routes/UserRoutes.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
-import HomePage from "../pages/HomePage";
+import { MainLayout } from "../components/layout/MainLayout";
+// Sửa đường dẫn Import cho đúng với file HomePage của bạn
+import { Home } from "../pages/HomePage"; 
 
 export default function UserRoutes() {
   return (
     <Routes>
-      {/* Các route dành riêng cho User sẽ nằm ở đây */}
-      <Route path="/" element={<HomePage />} />
-      <Route path="/home" element={<HomePage />} />
-      
-      {/* Ví dụ sau này có thêm trang: <Route path="/playlist" element={<PlaylistPage />} /> */}
+      {/* Route Cha chứa Layout */}
+      <Route element={<MainLayout />}>
+        {/* Các Route con sẽ được render vào thẻ <Outlet /> bên trong MainLayout */}
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
+      </Route>
 
-      {/* Nếu gõ sai đường dẫn, tự động văng về trang chủ của user */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
