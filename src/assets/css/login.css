@@ -1,0 +1,87 @@
+/* ===== RESET BASE & SPOTIFY FONT ===== */
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    @apply appearance-none bg-transparent outline-none;
+  }
+
+  body {
+    @apply bg-[#121212] text-white antialiased;
+    font-family: "Circular Sp", "Helvetica Neue", helvetica, arial, sans-serif;
+  }
+}
+
+/* ===== SPOTIFY CUSTOM COMPONENTS ===== */
+@layer components {
+  .btn-spotify-primary {
+    @apply w-full bg-[#1ed760] text-black font-bold text-[16px] py-[14px] rounded-full uppercase tracking-[2px] transition-all duration-200;
+  }
+  .btn-spotify-primary:hover:not(:disabled) {
+    @apply bg-[#3be477] scale-[1.04];
+  }
+  .btn-spotify-primary:disabled {
+    @apply bg-[#1ed760]/50 cursor-not-allowed opacity-70;
+  }
+
+  .btn-spotify-social {
+    @apply relative flex items-center justify-center w-full py-[14px] px-4 bg-transparent border border-[#878787] rounded-full text-white font-bold text-[16px] transition-colors duration-200;
+  }
+  .btn-spotify-social:hover {
+    @apply border-white;
+  }
+  .btn-spotify-social .icon-wrapper {
+    @apply absolute left-6 w-6 h-6 flex items-center justify-center;
+  }
+
+  .btn-spotify-outline {
+    @apply w-full border border-[#878787] py-[14px] rounded-full text-white font-bold tracking-[2px] text-[14px] hover:border-white transition-all uppercase;
+  }
+
+  .spotify-input-label {
+    @apply block text-[14px] font-bold text-white mb-2;
+  }
+  .spotify-input-field {
+    @apply w-full px-4 py-3.5 rounded-[4px] bg-[#121212] text-white border border-[#878787] transition-all text-[16px] placeholder-[#878787];
+  }
+  .spotify-input-field:hover {
+    @apply border-white outline-none;
+  }
+  .spotify-input-field:focus {
+    @apply border-white outline-none ring-[3px] ring-white/20;
+  }
+
+  .spotify-divider {
+    @apply flex items-center gap-4 my-8;
+  }
+  .spotify-divider-line {
+    @apply flex-1 border-t border-[#292929];
+  }
+  .spotify-divider-text {
+    @apply text-white text-[12px] font-bold tracking-[2px] uppercase;
+  }
+  
+  .spotify-error-box {
+    @apply bg-[#e22134] text-white text-[14px] font-semibold p-3 rounded mb-4 flex items-center gap-2;
+  }
+}
+
+/* ===== VARIABLES & ANIMATIONS ===== */
+:root {
+  --animate-spin: spin 1s linear infinite;
+}
+
+.animate-fade-in { animation: fade-in 0.6s ease forwards; }
+.animate-fade-up { animation: fade-up 0.6s ease forwards; }
+.animate-spin { animation: var(--animate-spin); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
