@@ -25,29 +25,38 @@ export default function AuthPage() {
     if (errorMsg) setErrorMsg("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
     
     try {
       if (isLogin) {
-        // === LUỒNG ĐĂNG NHẬP ===
-        // Giả lập API Login thành công sau 1 giây
-        await new Promise((resolve) => setTimeout(resolve, 1000)); 
+        // === LUỒNG ĐĂNG NHẬP (GỌI API THẬT) ===
+        const response = await authService.login({
+          email: formData.email,
+          password: formData.password,
+        });
         
-        // Hiện popup thành công
+        // 1. Lưu token thật vào F12 -> Application -> Local Storage
+        localStorage.setItem("accessToken", response.token); 
+        
+        // 2. Hiện popup thành công
         toast.success("Đăng nhập thành công! Đang chuyển hướng...");
         
-        // Chuyển hướng thẳng vào nhánh User (trang Home)
-        navigate("/"); 
+        // 3. Bay thẳng vào trang Home
+        navigate("/home"); 
         
       } else {
-        // === LUỒNG ĐĂNG KÝ ===
-        // Giả lập API Đăng ký thành công sau 1 giây
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // === LUỒNG ĐĂNG KÝ (GỌI API THẬT) ===
+        await authService.register({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          // Gửi thêm số điện thoại nếu backend của bạn có trường này:
+          // number: formData.number 
+        });
         
-        // Hiện popup thành công
         toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
         
         // Xóa pass cũ, tự động chuyển UI về tab Đăng nhập
@@ -55,8 +64,9 @@ export default function AuthPage() {
         setIsLogin(true);
       }
     } catch (error: any) {
-      setErrorMsg(error?.message || "Có lỗi xảy ra, vui lòng thử lại!");
-      toast.error("Thao tác thất bại!"); // Báo lỗi bằng Toast màu đỏ
+      // Axios interceptor đã bóc tách lỗi giúp chúng ta, giờ chỉ cần in ra
+      setErrorMsg(error?.message || "Sai email hoặc mật khẩu, vui lòng thử lại!");
+      toast.error("Thao tác thất bại!"); 
     } finally {
       setLoading(false);
     }
