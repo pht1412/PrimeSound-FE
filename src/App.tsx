@@ -23,7 +23,7 @@ function App() {
           
           {/* Nhánh 2: Không gian User (Giao lại toàn quyền cho UserRoutes) */}
           {/* Dấu /* cực kỳ quan trọng, nó báo cho React biết: "Cứ cái gì bắt đầu bằng /home thì đưa cho UserRoutes xử lý tiếp" */}
-          <Route path="/home/*" element={<UserRoutes />} />
+          <Route path="/*" element={<UserRoutes />} />
         </Routes>
         
       </BrowserRouter>

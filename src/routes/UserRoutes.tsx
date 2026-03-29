@@ -4,6 +4,7 @@ import { MainLayout } from "../components/layout/MainLayout";
 // Sửa đường dẫn Import cho đúng với file HomePage của bạn
 import { Home } from "../pages/HomePage"; 
 import { ProfilePage } from "../pages/ProfilePage"; // Nhớ import
+import RepostPage from "../pages/RepostPage";
 
 export default function UserRoutes() {
   return (
@@ -14,6 +15,7 @@ export default function UserRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/reposts" element={<RepostPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,4 +1,5 @@
 // src/components/home/NavigationSidebarSection.tsx
+import { RefreshCcw } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 export const NavigationSidebarSection = () => {
@@ -56,6 +57,15 @@ export const NavigationSidebarSection = () => {
               >
                 <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 Artists
+              </NavLink>
+            </li>
+            <li>
+              <NavLink 
+                to="/reposts" 
+                className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
+              >
+                <RefreshCcw className="w-5 h-5 hover:text-[#2db35d] transition" />
+                Reposts
               </NavLink>
             </li>
           </ul>
