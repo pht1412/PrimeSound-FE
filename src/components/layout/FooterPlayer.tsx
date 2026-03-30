@@ -1,5 +1,5 @@
 // src/components/layout/FooterPlayer.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMusicPlayer } from '../../context/MusicPlayerContext';
 
 export const FooterPlayer = () => {

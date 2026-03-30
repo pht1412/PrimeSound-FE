@@ -1,24 +1,26 @@
-// src/pages/HomePage.tsx
+﻿// src/pages/HomePage.tsx
 import { useState, useEffect } from "react";
+import { SongCommentsPanel } from "../components/comments/SongCommentsPanel";
+import { SongRepostPanel } from "../components/repost/SongRepostPanel";
 import { songService } from "../services/songService";
-// Thêm 'type' trước Song để tuân thủ verbatimModuleSyntax
+// ThÃªm 'type' trÆ°á»›c Song Ä‘á»ƒ tuÃ¢n thá»§ verbatimModuleSyntax
 import { useMusicPlayer, type Song } from "../context/MusicPlayerContext";
 
 const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
-// Mở rộng kiểu dữ liệu Song để thêm trường 'plays' phục vụ cho việc hiển thị UI
+// Má»Ÿ rá»™ng kiá»ƒu dá»¯ liá»‡u Song Ä‘á»ƒ thÃªm trÆ°á»ng 'plays' phá»¥c vá»¥ cho viá»‡c hiá»ƒn thá»‹ UI
 interface HomeSong extends Song {
   plays?: string;
 }
 
 export const Home = () => {
-  const { playSong, currentSong, isPlaying, togglePlay } = useMusicPlayer();
+  const { playSong, currentSong, isPlaying } = useMusicPlayer();
   const [trendingSong, setTrendingSong] = useState<HomeSong | null>(null);
   const [topArtists, setTopArtists] = useState<HomeSong[]>([]);
   const [billboards, setBillboards] = useState<HomeSong[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Hàm chuẩn hóa đường dẫn ảnh cực mạnh
+  // HÃ m chuáº©n hÃ³a Ä‘Æ°á»ng dáº«n áº£nh cá»±c máº¡nh
   const getFileUrl = (url: string) => {
     if (!url) return "";
     if (url.startsWith('http')) return url;
@@ -26,7 +28,7 @@ export const Home = () => {
     return `${BACKEND_URL}/uploads/${filename}`;
   };
 
-  // Hàm chuyển đổi dữ liệu
+  // HÃ m chuyá»ƒn Ä‘á»•i dá»¯ liá»‡u
   const mapSongData = (song: any): HomeSong => {
     return {
       id: song._id,
@@ -42,29 +44,29 @@ export const Home = () => {
     const fetchHomeData = async () => {
       try {
         setLoading(true);
-        // Ép kiểu (Casting) kết quả trả về thành mảng bất kỳ (any[]) để TS bỏ qua lỗi AxiosResponse
+        // Ã‰p kiá»ƒu (Casting) káº¿t quáº£ tráº£ vá» thÃ nh máº£ng báº¥t ká»³ (any[]) Ä‘á»ƒ TS bá» qua lá»—i AxiosResponse
         const [trendingRes, latestRes, discoveryRes] = await Promise.all([
           songService.getTrendingSongs(),
           songService.getLatestSongs(),
           songService.getDiscoverySongs()
         ]) as any[];
 
-        // 1. Lấy bài hát đầu tiên trong list Trending làm Hero Banner
+        // 1. Láº¥y bÃ i hÃ¡t Ä‘áº§u tiÃªn trong list Trending lÃ m Hero Banner
         if (trendingRes && trendingRes.length > 0) {
           setTrendingSong(mapSongData(trendingRes[0]));
         }
 
-        // 2. Gán list Discovery cho mục Top Artists
+        // 2. GÃ¡n list Discovery cho má»¥c Top Artists
         if (discoveryRes) {
           setTopArtists(discoveryRes.slice(0, 10).map(mapSongData));
         }
 
-        // 3. Gán list Latest cho Billboard
+        // 3. GÃ¡n list Latest cho Billboard
         if (latestRes) {
           setBillboards(latestRes.slice(0, 10).map(mapSongData));
         }
       } catch (error) {
-        console.error("Lỗi khi tải dữ liệu trang chủ:", error);
+        console.error("Lá»—i khi táº£i dá»¯ liá»‡u trang chá»§:", error);
       } finally {
         setLoading(false);
       }
@@ -84,7 +86,7 @@ export const Home = () => {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-8 animate-fade-in">
 
-      {/* CỘT TRÁI */}
+      {/* Cá»˜T TRÃI */}
       <div className="flex flex-col gap-8">
 
         {/* BANNER TRENDING */}
@@ -132,7 +134,7 @@ export const Home = () => {
                 </div>
               </div>
             ))}
-            {topArtists.length === 0 && <p className="text-gray-500 text-sm">Chưa có dữ liệu bài hát.</p>}
+            {topArtists.length === 0 && <p className="text-gray-500 text-sm">ChÆ°a cÃ³ dá»¯ liá»‡u bÃ i hÃ¡t.</p>}
           </div>
         </div>
 
@@ -154,26 +156,32 @@ export const Home = () => {
                 </div>
               </div>
             ))}
-            {billboards.length === 0 && <p className="text-gray-500 text-sm">Chưa có bài hát mới nào.</p>}
+            {billboards.length === 0 && <p className="text-gray-500 text-sm">ChÆ°a cÃ³ bÃ i hÃ¡t má»›i nÃ o.</p>}
           </div>
         </div>
 
       </div>
 
-      {/* CỘT PHẢI (NOW PLAYING) */}
-      {/* ================= CỘT PHẢI: TOP ARTISTS ================= */}
+      {/* Cá»˜T PHáº¢I (NOW PLAYING) */}
+      {/* ================= Cá»˜T PHáº¢I: TOP ARTISTS ================= */}
       <div className="hidden xl:block">
-        <div className="bg-[#1a1a1a] rounded-3xl p-6 flex flex-col sticky top-0 shadow-2xl">
+        {currentSong && (
+          <div className="sticky top-0 flex flex-col gap-6">
+            <SongCommentsPanel song={currentSong} />
+            <SongRepostPanel song={currentSong} />
+          </div>
+        )}
+        <div className={`${currentSong ? "hidden" : "flex"} bg-[#1a1a1a] rounded-3xl p-6 flex-col sticky top-0 shadow-2xl`}>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-white">Popular Artists</h3>
             <button className="text-[#a7a7a7] hover:text-white"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* Tạm thời mượn data của list topArtists để hiển thị danh sách ca sĩ */}
+            {/* Táº¡m thá»i mÆ°á»£n data cá»§a list topArtists Ä‘á»ƒ hiá»ƒn thá»‹ danh sÃ¡ch ca sÄ© */}
             {topArtists.slice(0, 5).map((song, index) => (
               <div key={`artist-${index}`} className="flex items-center gap-4 group cursor-pointer hover:bg-[#282828] p-2 rounded-xl transition">
-                {/* Dùng luôn cover bài hát làm Avatar ca sĩ (bo tròn) */}
+                {/* DÃ¹ng luÃ´n cover bÃ i hÃ¡t lÃ m Avatar ca sÄ© (bo trÃ²n) */}
                 <div className="w-14 h-14 rounded-full overflow-hidden shadow-lg">
                   <img src={song.cover} alt={song.artist} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                 </div>
@@ -186,7 +194,7 @@ export const Home = () => {
                 </button>
               </div>
             ))}
-            {topArtists.length === 0 && <p className="text-gray-500 text-sm">Chưa có dữ liệu.</p>}
+            {topArtists.length === 0 && <p className="text-gray-500 text-sm">ChÆ°a cÃ³ dá»¯ liá»‡u.</p>}
           </div>
 
           <button className="w-full mt-6 py-3 border border-[#4d4d4d] rounded-full text-sm font-bold text-white tracking-widest uppercase hover:border-white transition">
@@ -197,3 +205,4 @@ export const Home = () => {
     </div>
   );
 };
+

@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import AuthPage from "./pages/AuthPage";
+import MusicWebAppPage from "./pages/MusicWebAppPage";
 import UserRoutes from "./routes/UserRoutes";
 import { MusicPlayerProvider } from "./context/MusicPlayerContext";
 
@@ -20,6 +21,7 @@ function App() {
           
           {/* Nhánh 1: Xác thực (Giao diện full màn hình, không có Sidebar/Player) */}
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/music-web-app" element={<MusicWebAppPage />} />
           
           {/* Nhánh 2: Không gian User (Giao lại toàn quyền cho UserRoutes) */}
           {/* Dấu /* cực kỳ quan trọng, nó báo cho React biết: "Cứ cái gì bắt đầu bằng /home thì đưa cho UserRoutes xử lý tiếp" */}
