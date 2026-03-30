@@ -1,5 +1,5 @@
 // src/pages/AuthPage.tsx
-import { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom"; // Import hook chuyển trang
 import { toast } from "react-toastify"; // Import hàm gọi popup
 
@@ -20,12 +20,12 @@ export default function AuthPage() {
     password: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (errorMsg) setErrorMsg("");
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
@@ -36,7 +36,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         const response = await authService.login({
           email: formData.email,
           password: formData.password,
-        });
+        }) as { token: string };
         
         // 1. Lưu token thật vào F12 -> Application -> Local Storage
         localStorage.setItem("accessToken", response.token); 

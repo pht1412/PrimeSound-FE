@@ -10,7 +10,6 @@ export const ProfilePage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('Reposts');
   
   // STATE ĐIỀU KHIỂN MODAL
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
