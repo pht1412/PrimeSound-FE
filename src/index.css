@@ -1,7 +1,9 @@
+/* 1. CÁC LỆNH IMPORT BẮT BUỘC PHẢI Ở TRÊN CÙNG */
 @import './assets/css/login.css';
 @import './assets/css/home.css';
+@import './assets/css/noti.css';
 
+/* 2. KHỞI TẠO TAILWIND (Chỉ gọi đúng 1 lần ở file này) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-

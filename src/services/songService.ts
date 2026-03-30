@@ -1,22 +1,22 @@
 // src/services/songService.ts
-import api from '../api/api';
+import api from "../api/api";
 
 export const songService = {
   // === CÁC API KHÁM PHÁ ===
 
   // Lấy các bài hát thịnh hành
   getTrendingSongs: async () => {
-    return await api.get('/songs/trending');
+    return await api.get("/songs/trending");
   },
 
   // Lấy các bài hát mới nhất
   getLatestSongs: async () => {
-    return await api.get('/songs/latest');
+    return await api.get("/songs/latest");
   },
 
   // Lấy các bài hát khám phá
   getDiscoverySongs: async () => {
-    return await api.get('/songs/discovery');
+    return await api.get("/songs/discovery");
   },
 
   // === CÁC API CỐT LÕI & QUẢN LÝ ===
@@ -24,12 +24,12 @@ export const songService = {
   // Tải lên bài hát mới
   // Nhận vào FormData object chứa title, artist, genre, file audio, file cover
   uploadSong: async (formData: FormData) => {
-    return await api.post('/songs', formData);
+    return await api.post("/songs", formData, { timeout: 60000 });
   },
 
   // Lấy danh sách bài hát của tôi (để hiển thị status pending/approved)
   getMySongs: async () => {
-    return await api.get('/users/my-songs');
+    return await api.get("/users/my-songs");
   },
 
   // === CÁC API PLAYER ===
@@ -47,7 +47,8 @@ export const songService = {
   // Lấy đường dẫn Streaming
   getStreamUrl: (id: string) => {
     // Không dùng axios, trả về URL trực tiếp cho <audio src={...}>
-    const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+    const BACKEND_URL =
+      import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
     return `${BACKEND_URL}/api/v1/songs/${id}/stream`;
-  }
+  },
 };

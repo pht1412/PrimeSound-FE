@@ -6,6 +6,7 @@ import { Home } from "../pages/HomePage";
 import { ProfilePage } from "../pages/ProfilePage"; // Nhớ import
 import { UploadPage } from "../pages/UploadMusicPage";
 import { FavoriteSongsPage } from "../pages/FavoriteSongsPage";
+import { NotificationsPage } from "../pages/NotificationsPage";
 
 export default function UserRoutes() {
   return (
@@ -18,6 +19,7 @@ export default function UserRoutes() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/favorites" element={<FavoriteSongsPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
