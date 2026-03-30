@@ -28,10 +28,13 @@ export const Home = () => {
 
   // Hàm chuyển đổi dữ liệu
   const mapSongData = (song: any): HomeSong => {
+    // SỬA LỖI Ở ĐÂY: Trích xuất chính xác tên nghệ sĩ an toàn
+    const artistName = song.artist?.name || song.artist?.stageName || song.uploadedBy?.name || (typeof song.artist === 'string' ? song.artist : "Unknown Artist");
+
     return {
       id: song._id,
       title: song.title,
-      artist: song.uploadedBy?.name || song.artist || "Unknown Artist",
+      artist: artistName, // Gán chuỗi tên đã được trích xuất an toàn
       uploadedBy: song.uploadedBy?.name,
       cover: getFileUrl(song.coverUrl) || "https://images.unsplash.com/photo-1493225457124-a1a2a5f5f4b0",
       audioUrl: getFileUrl(song.audioUrl),
