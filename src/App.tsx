@@ -7,10 +7,13 @@ import AuthPage from "./pages/AuthPage";
 import UserRoutes from "./routes/UserRoutes";
 import { MusicPlayerProvider } from "./context/MusicPlayerContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
+import { PlaylistProvider } from "./context/PlaylistContext";
+
 
 function App() {
   return (
     <FavoritesProvider> {/* QUẢN LÝ TRẠNG THÁI LIKE TOÀN CỤC */}
+    <PlaylistProvider>
       <MusicPlayerProvider> {/* QUẢN LÝ PLAYER */}
         <BrowserRouter>
           <ToastContainer theme="dark" position="top-right" autoClose={3000} />
@@ -30,6 +33,7 @@ function App() {
           
         </BrowserRouter>
       </MusicPlayerProvider>
+      </PlaylistProvider>
     </FavoritesProvider>
   );
 }

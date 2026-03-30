@@ -9,6 +9,8 @@ import { FavoriteSongsPage } from "../pages/FavoriteSongsPage";
 import { NotificationsPage } from "../pages/NotificationsPage";
 import RepostPage from "../pages/RepostPage";
 import { SearchPage } from "../pages/SearchPage";
+import { PlaylistPage } from "../pages/PlaylistPage";
+import { PlaylistDetailPage } from "../pages/PlaylistDetailPage";
 
 export default function UserRoutes() {
   return (
@@ -24,6 +26,8 @@ export default function UserRoutes() {
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/reposts" element={<RepostPage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/playlists" element={<PlaylistPage />} />
+        <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,9 +1,10 @@
 // src/pages/SearchPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Play, Loader2, Music, User, Clock, X } from 'lucide-react';
+import { Play, Loader2, Music, User, Clock, X, MoreHorizontal } from 'lucide-react';
 import { searchService } from '../services/searchService';
 import { useMusicPlayer } from '../context/MusicPlayerContext';
+import { AddToPlaylistModal } from '../components/modals/AddToPlaylistModal';
 
 const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 const MAX_RECENTS = 10; // Giới hạn lưu tối đa 10 từ khóa
@@ -28,6 +29,10 @@ export const SearchPage = () => {
   
   // State lưu trữ Lịch sử tìm kiếm
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  // SỬA LỖI: Đưa State quản lý Modal vào BÊN TRONG Component
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedSongId, setSelectedSongId] = useState<string | null>(null);
 
   // 1. Khi load trang, đọc dữ liệu từ localStorage
   useEffect(() => {
@@ -118,7 +123,7 @@ export const SearchPage = () => {
   };
 
   return (
-    <div className="flex-1 bg-[#121212] min-h-screen text-white overflow-y-auto custom-scrollbar p-8 pb-28">
+    <div className="flex-1 bg-[#121212] min-h-screen text-white overflow-y-auto custom-scrollbar p-8 pb-28 relative">
       
       {/* TRẠNG THÁI 1: KHÔNG CÓ TỪ KHÓA -> HIỂN THỊ LỊCH SỬ TÌM KIẾM */}
       {!keyword ? (
@@ -245,9 +250,25 @@ export const SearchPage = () => {
                           </div>
                         </div>
 
-                        <div className="text-sm text-[#a7a7a7] w-12 text-right">
-                          {formatTime(song.duration)}
+                        {/* THỜI GIAN & NÚT 3 CHẤM (MỞ MODAL) */}
+                        <div className="flex items-center gap-4">
+                          <div className="text-sm text-[#a7a7a7] w-12 text-right">
+                            {formatTime(song.duration)}
+                          </div>
+                          
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation(); // Ngăn phát nhạc khi ấn nút 3 chấm
+                              setSelectedSongId(song._id);
+                              setIsAddModalOpen(true);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-2 hover:bg-white/10 rounded-full transition"
+                            title="Thêm vào Playlist"
+                          >
+                            <MoreHorizontal className="w-5 h-5 text-white" />
+                          </button>
                         </div>
+                        
                       </div>
                     ))}
                   </div>
@@ -258,6 +279,17 @@ export const SearchPage = () => {
           )}
         </>
       )}
+
+      {/* CHÈN MODAL VÀO CUỐI TRANG */}
+      <AddToPlaylistModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setSelectedSongId(null);
+        }} 
+        songId={selectedSongId} 
+      />
+
     </div>
   );
 };
