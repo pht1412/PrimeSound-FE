@@ -31,7 +31,8 @@ export const Home = () => {
     return {
       id: song._id,
       title: song.title,
-      artist: song.artist?.name || song.artist || "Unknown Artist",
+      artist: song.uploadedBy?.name || song.artist || "Unknown Artist",
+      uploadedBy: song.uploadedBy?.name,
       cover: getFileUrl(song.coverUrl) || "https://images.unsplash.com/photo-1493225457124-a1a2a5f5f4b0",
       audioUrl: getFileUrl(song.audioUrl),
       plays: `${(song.playCount || 0).toLocaleString()} Plays`

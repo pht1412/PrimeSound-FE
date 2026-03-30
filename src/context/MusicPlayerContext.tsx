@@ -6,6 +6,11 @@ export interface Song {
   id: string;
   title: string;
   artist: string;
+  genre?: string;
+  releaseDate?: string;
+  album?: string;
+  duration?: number;
+  uploadedBy?: string;
   cover: string;
   audioUrl: string;
 }

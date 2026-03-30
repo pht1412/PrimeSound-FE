@@ -69,14 +69,18 @@ export const Header = () => {
 
       {/* Cụm bên phải: User Profile & Actions */}
       <div className="flex items-center gap-6">
-        <button className="text-white hover:text-[#1ed760] transition relative">
-          {/* Icon Notification */}
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        <Link
+          to="/home/upload"
+          className="flex items-center gap-2.5 bg-[#1ed760] text-black font-bold text-sm px-6 py-3 rounded-full hover:scale-105 transition transform duration-150 shadow-lg"
+        >
+          {/* Icon Tải Lên (Simple Upload Icon) */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
           </svg>
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+          <span className="tracking-wide">Upload</span>
+        </Link>
 
         <button className="text-white hover:text-[#1ed760] transition">
           {/* Icon Settings */}

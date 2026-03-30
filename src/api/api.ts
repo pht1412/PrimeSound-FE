@@ -18,6 +18,11 @@ apiClient.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)
@@ -43,11 +48,11 @@ apiClient.interceptors.response.use(
 
 // 4. Đóng gói thành một object chứa các phương thức tái sử dụng
 const api = {
-  get: (url: string, params?: object) => apiClient.get(url, { params }),
-  post: (url: string, data?: object) => apiClient.post(url, data),
-  put: (url: string, data?: object) => apiClient.put(url, data),
-  patch: (url: string, data?: object, config?: object) => apiClient.patch(url, data, config),
-  delete: (url: string) => apiClient.delete(url),
+  get: (url: string, config?: object) => apiClient.get(url, config),
+  post: (url: string, data?: any, config?: object) => apiClient.post(url, data, config),
+  put: (url: string, data?: any, config?: object) => apiClient.put(url, data, config),
+  patch: (url: string, data?: any, config?: object) => apiClient.patch(url, data, config),
+  delete: (url: string, config?: object) => apiClient.delete(url, config),
 };
 
 export default api;

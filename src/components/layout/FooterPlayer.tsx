@@ -1,21 +1,31 @@
 // src/components/layout/FooterPlayer.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useMusicPlayer } from '../../context/MusicPlayerContext';
+import { useFavorites } from '../../context/FavoritesContext';
 
 export const FooterPlayer = () => {
-  // 1. LẤY DỮ LIỆU TỪ CONTEXT (Lấy thêm audioRef để chỉnh âm lượng)
+  // 1. LẤY DỮ LIỆU TỪ CONTEXT
   const { currentSong, isPlaying, togglePlay, progress, currentTime, duration, seek, audioRef } = useMusicPlayer();
+  const { isLiked, toggleLike } = useFavorites();
 
   // 2. CÁC STATE QUẢN LÝ KÉO TRƯỢT (DRAG)
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
-  const [dragProgress, setDragProgress] = useState(0); // Lưu % thanh tiến trình khi đang kéo
+  const [dragProgress, setDragProgress] = useState(0);
 
-  const [volume, setVolume] = useState(1); // Âm lượng từ 0 -> 1
+  const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [prevVolume, setPrevVolume] = useState(1); // Lưu lại âm lượng trước khi Mute
+  const [prevVolume, setPrevVolume] = useState(1);
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);
 
-  // 3. REFERENCES (Để đo kích thước thanh cuộn)
+  // 3. LIKE STATE: Chỉ track loading state, trạng thái like lấy từ global context
+  const [likeLoading, setLikeLoading] = useState(false);
+
+  // 4. DERIVED STATE: Lấy trạng thái like của bài hát hiện tại
+  const currentlyLiked = useMemo(() => {
+    return currentSong ? isLiked(currentSong.id) : false;
+  }, [currentSong?.id, isLiked]);
+
+  // 5. REFERENCES
   const progressBarRef = useRef<HTMLDivElement>(null);
   const volumeBarRef = useRef<HTMLDivElement>(null);
 
@@ -37,25 +47,21 @@ export const FooterPlayer = () => {
   // --- LOGIC: XỬ LÝ KÉO TRƯỢT MƯỢT MÀ TỪ WINDOW ---
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      // Khi đang kéo thanh TUA NHẠC
       if (isDraggingProgress && progressBarRef.current && duration) {
         const rect = progressBarRef.current.getBoundingClientRect();
-        // Tính % vị trí chuột (giới hạn từ 0 đến 1)
         const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         setDragProgress(p * 100);
       }
 
-      // Khi đang kéo thanh ÂM LƯỢNG
       if (isDraggingVolume && volumeBarRef.current) {
         const rect = volumeBarRef.current.getBoundingClientRect();
         const v = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         setVolume(v);
-        if (isMuted && v > 0) setIsMuted(false); // Đang kéo thì bỏ mute
+        if (isMuted && v > 0) setIsMuted(false);
       }
     };
 
     const handleMouseUp = (e: MouseEvent) => {
-      // Khi thả chuột ở thanh TUA NHẠC -> Gọi hàm seek() để tua thật
       if (isDraggingProgress && progressBarRef.current && duration) {
         const rect = progressBarRef.current.getBoundingClientRect();
         const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
@@ -63,38 +69,48 @@ export const FooterPlayer = () => {
         setIsDraggingProgress(false);
       }
 
-      // Khi thả chuột ở thanh ÂM LƯỢNG
       if (isDraggingVolume) {
         setIsDraggingVolume(false);
       }
     };
 
-    // Chỉ gán sự kiện cho window khi đang có thao tác kéo
     if (isDraggingProgress || isDraggingVolume) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
 
-    // Dọn dẹp sự kiện
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDraggingProgress, isDraggingVolume, duration, seek, isMuted]);
 
-
   // --- LOGIC: CLICK ĐỂ MUTE/UNMUTE ---
   const toggleMute = () => {
     if (isMuted) {
       setIsMuted(false);
-      setVolume(prevVolume > 0 ? prevVolume : 1); // Khôi phục volume
+      setVolume(prevVolume > 0 ? prevVolume : 1);
     } else {
-      setPrevVolume(volume); // Cất volume hiện tại đi
+      setPrevVolume(volume);
       setIsMuted(true);
       setVolume(0);
     }
   };
 
+  // --- LOGIC: LIKE/UNLIKE BÀI HÁT - Sử dụng global context ---
+  const handleToggleLike = async () => {
+    if (!currentSong || likeLoading) return;
+
+    setLikeLoading(true);
+    try {
+      // Gọi global toggleLike - nó sẽ handle optimistic update + API sync
+      await toggleLike(currentSong.id);
+    } catch (error) {
+      console.error("❌ Lỗi khi like/unlike bài hát:", error);
+    } finally {
+      setLikeLoading(false);
+    }
+  };
 
   // Tính toán thời gian & % tiến trình để hiển thị UI
   const displayProgress = isDraggingProgress ? dragProgress : progress;
@@ -135,6 +151,29 @@ export const FooterPlayer = () => {
             ) : (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
             )}
+          </button>
+          
+          {/* NÚT LIKE/UNLIKE */}
+          <button
+            onClick={handleToggleLike}
+            disabled={!currentSong || likeLoading}
+            className={`text-[#b3b3b3] hover:text-white transition ${
+              !currentSong ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill={currentlyLiked ? "#1ed760" : "none"}
+              stroke={currentlyLiked ? "#1ed760" : "currentColor"}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="transition-colors duration-200"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
           </button>
           
           <button className="text-[#b3b3b3] hover:text-white"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg></button>
