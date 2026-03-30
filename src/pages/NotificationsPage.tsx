@@ -118,6 +118,8 @@ export const NotificationsPage = () => {
                 return <>{senderName} just uploaded a new track{songTitle}</>;
             case 'follow':
                 return <>{senderName} started following you</>;
+            case 'repost':
+                return <>{senderName} reposted your track{songTitle}</>;
             default:
                 return <>{senderName} interacted with your profile</>;
         }
@@ -172,7 +174,7 @@ export const NotificationsPage = () => {
                                 {!noti.isRead && <div className="w-2.5 h-2.5 bg-[#1ed760] rounded-full shadow-[0_0_8px_#1ed760]"></div>}
 
                                 {/* HIỂN THỊ ẢNH BÌA BÀI HÁT THẬT */}
-                                {['like_song', 'new_upload', 'comment'].includes(noti.type) && noti.entityDetails?.coverUrl && (
+                                {['like_song', 'new_upload', 'comment', 'repost'].includes(noti.type) && noti.entityDetails?.coverUrl && (
                                     <img
                                         src={getAvatarUrl(noti.entityDetails.coverUrl)}
                                         alt="Song Cover"

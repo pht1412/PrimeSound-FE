@@ -2,11 +2,23 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { userService } from '../../services/userService';
+import { useNavigate } from 'react-router-dom'; // Thêm useNavigate
 
 const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
 export const Header = () => {
   const [user, setUser] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState(''); // State lưu từ khóa
+  const navigate = useNavigate();
+
+  // Hàm xử lý khi ấn Enter hoặc Click kính lúp
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault(); // Ngăn trình duyệt reload trang
+    if (searchTerm.trim()) {
+      // Chuyển hướng sang trang search kèm query param
+      navigate(`/home/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
 
   // Hàm chuẩn hóa đường dẫn Avatar
   const getAvatarUrl = (url: string) => {
@@ -51,22 +63,34 @@ export const Header = () => {
 
       {/* Cụm ở giữa: Search Bar */}
       <div className="flex-1 max-w-[500px] mx-8">
-        <div className="flex items-center w-full bg-[#202020] rounded-full px-5 py-2.5 border border-transparent focus-within:border-[#878787] transition-all">
+        {/* Đổi div thành form, gắn sự kiện onSubmit */}
+        <form
+          onSubmit={handleSearch}
+          className="flex items-center w-full bg-[#202020] rounded-full px-5 py-2.5 border border-transparent focus-within:border-[#878787] transition-all"
+        >
           <input
             type="text"
             placeholder="Type your search here"
+            value={searchTerm}
+            // Thêm sự kiện onFocus này vào:
+            onFocus={() => {
+              if (!searchTerm) navigate('/home/search');
+            }}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              // Tùy chọn: Gõ đến đâu search đến đó (Live Search)
+              // navigate(`/home/search?q=${encodeURIComponent(e.target.value)}`);
+            }}
             className="flex-1 bg-transparent text-white text-[15px] outline-none placeholder:text-[#838383]"
           />
-          <button className="text-[#838383] hover:text-white transition ml-2">
-            {/* Icon Search */}
+          <button type="submit" className="text-[#838383] hover:text-white transition ml-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </button>
-        </div>
+        </form>
       </div>
-
       {/* Cụm bên phải: User Profile & Actions */}
       <div className="flex items-center gap-6">
         <Link
@@ -81,7 +105,7 @@ export const Header = () => {
           </svg>
           <span className="tracking-wide">Upload</span>
         </Link>
-        
+
         <Link to="/home/notifications" className="relative text-white hover:text-[#1ed760] transition ml-2">
           {/* Icon Bell */}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

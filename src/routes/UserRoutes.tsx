@@ -8,6 +8,7 @@ import { UploadPage } from "../pages/UploadMusicPage";
 import { FavoriteSongsPage } from "../pages/FavoriteSongsPage";
 import { NotificationsPage } from "../pages/NotificationsPage";
 import RepostPage from "../pages/RepostPage";
+import { SearchPage } from "../pages/SearchPage";
 
 export default function UserRoutes() {
   return (
@@ -22,6 +23,7 @@ export default function UserRoutes() {
         <Route path="/favorites" element={<FavoriteSongsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/reposts" element={<RepostPage />} />
+        <Route path="/search" element={<SearchPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

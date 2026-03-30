@@ -61,7 +61,7 @@ export const NavigationSidebarSection = () => {
             </li>
             <li>
               <NavLink 
-                to="/reposts" 
+                to="/home/reposts" 
                 className={({ isActive }) => (isActive ? activeClass : inactiveClass)}
               >
                 <RefreshCcw className="w-5 h-5 hover:text-[#2db35d] transition" />

@@ -64,16 +64,15 @@ export const MusicPlayerProvider = ({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (currentSong && audioRef.current) {
       audioRef.current.src = currentSong.audioUrl;
-      audioRef.current.play();
-      setIsPlaying(true);
+      audioRef.current.play().catch(error => console.warn("Trình duyệt tạm chặn tự phát nhạc:", error)); setIsPlaying(true);
     }
   }, [currentSong]);
 
   return (
     <MusicPlayerContext.Provider value={{ currentSong, isPlaying, progress, currentTime, duration, playSong, togglePlay, seek, audioRef }}>
       {children}
-      <audio 
-        ref={audioRef} 
+      <audio
+        ref={audioRef}
         onLoadedMetadata={() => {
           // Khi tải xong meta data của file mp3, lấy luôn tổng thời gian
           if (audioRef.current) setDuration(audioRef.current.duration);
