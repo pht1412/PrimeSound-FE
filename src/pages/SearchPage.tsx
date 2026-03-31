@@ -201,12 +201,12 @@ export const SearchPage = () => {
                     {artists.map((artist) => (
                       <div
                         key={artist._id}
-                        onClick={() => navigate(`/home/profile/${artist._id}`)} // BƯỚC QUAN TRỌNG NHẤT Ở ĐÂY
+                        onClick={() => navigate(`/home/profile/${artist._id}`)} // Lúc này _id đã là ID thật của User
                         className="bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition cursor-pointer group"
                       >
                         <div className="relative mb-4 pb-[100%] shadow-[0_8px_24px_rgba(0,0,0,0.5)] rounded-full overflow-hidden">
                           <img
-                            src={getImageUrl(artist.avatarUrl)}
+                            src={getImageUrl(artist.avatar)} // ĐỔI TỪ avatarUrl THÀNH avatar
                             alt={artist.name}
                             className="absolute top-0 left-0 w-full h-full object-cover"
                           />

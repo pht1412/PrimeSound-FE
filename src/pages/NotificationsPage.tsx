@@ -1,8 +1,8 @@
 // src/pages/NotificationsPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { notificationService } from '../services/notificationService';
-import { userService } from '../services/userService'; // Lấy thông tin user hiện tại
+import { userService } from '../services/userService';
 
 const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
@@ -11,11 +11,8 @@ export const NotificationsPage = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentUser, setCurrentUser] = useState<any>(null);
-
-    // Khởi tạo Socket
     const [socket, setSocket] = useState<Socket | null>(null);
 
-    // Chuẩn hóa đường dẫn Avatar (Giống bên Header.tsx)
     const getAvatarUrl = (url: string) => {
         if (!url) return "https://ui-avatars.com/api/?name=User&background=1ed760&color=fff";
         if (url.startsWith('http')) return url;
@@ -23,40 +20,46 @@ export const NotificationsPage = () => {
         return `${BACKEND_URL}/uploads/${filename}`;
     };
 
-    // Hàm fomat thời gian (VD: hiển thị ngày/tháng/năm)
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
     };
 
-    // 1. Fetch dữ liệu User & Danh sách thông báo khi mới vào trang
+    // 1. LẤY THÔNG TIN USER 1 LẦN DUY NHẤT KHI VÀO TRANG
     useEffect(() => {
-        const fetchInitialData = async () => {
+        const initUser = async () => {
             try {
-                setLoading(true);
-                // Lấy thông tin User đang đăng nhập
                 const user: any = await userService.getMe();
                 setCurrentUser(user);
-
-                // Lấy danh sách thông báo từ API
-                const userId = user._id;
-                const response: any = await notificationService.getNotifications(userId, 1, 20);
-                if (response.success) {
-                    setNotifications(response.data);
-                }
             } catch (error) {
-                console.error("Lỗi khi tải dữ liệu thông báo:", error);
-            } finally {
-                setLoading(false);
+                console.error("Lỗi khi tải thông tin user:", error);
             }
         };
-
-        fetchInitialData();
+        initUser();
     }, []);
 
-    // 2. Thiết lập Socket.io để nhận Real-time
+    // 2. HÀM TẢI DANH SÁCH THÔNG BÁO (Hỗ trợ chế độ Tải Ngầm)
+    const fetchNotificationsList = useCallback(async (userId: string, isSilent = false) => {
+        // Nếu không phải tải ngầm thì mới hiện xoay xoay Loading
+        if (!isSilent) setLoading(true); 
+        try {
+            const response: any = await notificationService.getNotifications(userId, 1, 20);
+            if (response.success) {
+                setNotifications(response.data);
+            }
+        } catch (error) {
+            console.error("Lỗi khi tải danh sách thông báo:", error);
+        } finally {
+            if (!isSilent) setLoading(false);
+        }
+    }, []);
+
+    // 3. THEO DÕI SOCKET VÀ DỮ LIỆU
     useEffect(() => {
         if (!currentUser) return;
+
+        // Khi có user, lập tức tải danh sách thông báo lần đầu
+        fetchNotificationsList(currentUser._id, false);
 
         // Khởi tạo kết nối Socket
         const newSocket = io(BACKEND_URL);
@@ -64,32 +67,28 @@ export const NotificationsPage = () => {
 
         newSocket.on('connect', () => {
             console.log('Đã kết nối Socket.io từ Front-end!');
-            // Gửi event 'join' kèm ID user để vào đúng room
             newSocket.emit('join', currentUser._id || currentUser.id);
         });
 
-        // Lắng nghe sự kiện có thông báo mới
-        newSocket.on('new_notification', (newNoti) => {
-            console.log('Có thông báo mới Real-time:', newNoti);
-            // Chèn thông báo mới lên đầu danh sách hiện tại
-            setNotifications((prevList) => [newNoti, ...prevList]);
+        // 🔔 LẮNG NGHE SỰ KIỆN TỪ BACK-END
+        newSocket.on('new_notification', () => {
+            console.log('🔔 Có thông báo mới! Đang tải ngầm dữ liệu chuẩn...');
+            
+            // THAY VÌ PUSH DỮ LIỆU THÔ, TA GỌI LẠI API BẰNG CHẾ ĐỘ SILENT (True)
+            // Giao diện sẽ tự cập nhật thông tin chuẩn xác (Tên, Ảnh) mà không bị giật lag
+            fetchNotificationsList(currentUser._id, true);
         });
 
-        // Cleanup khi rời khỏi trang
         return () => {
             newSocket.disconnect();
         };
-    }, [currentUser]);
+    }, [currentUser, fetchNotificationsList]);
 
-    // 3. Hàm xử lý khi Click vào thông báo (Đánh dấu đã đọc)
     const handleNotificationClick = async (notiId: string, isRead: boolean) => {
-        if (isRead) return; // Đọc rồi thì bỏ qua
+        if (isRead) return; 
 
         try {
-            // Gọi API cập nhật DB
             await notificationService.markAsRead(notiId);
-
-            // Cập nhật lại State để UI gỡ chấm đỏ (nếu có làm)
             setNotifications(prevList =>
                 prevList.map(noti => noti._id === notiId ? { ...noti, isRead: true } : noti)
             );
@@ -98,13 +97,8 @@ export const NotificationsPage = () => {
         }
     };
 
-    // Render logic cho Text thông báo
-    // Render logic cho Text thông báo
     const renderNotificationText = (noti: any) => {
-        // Đã lấy được tên thật từ Back-end
         const senderName = noti.senderId?.name || 'Người dùng';
-
-        // Tên bài hát (Nếu có)
         const songTitle = noti.entityDetails?.title ? (
             <span className="text-white italic"> "{noti.entityDetails.title}"</span>
         ) : null;
@@ -125,7 +119,7 @@ export const NotificationsPage = () => {
         }
     };
 
-    if (loading) return <div className="text-white p-10 text-center font-medium">Đang tải thông báo...</div>;
+    if (loading) return <div className="text-[#1ed760] flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-[#1ed760] border-t-transparent rounded-full animate-spin"></div></div>;
 
     return (
         <div className="noti-container">
@@ -142,7 +136,7 @@ export const NotificationsPage = () => {
 
             <div className="noti-list">
                 {notifications.length === 0 ? (
-                    <div className="text-[#a7a7a7] italic">Bạn chưa có thông báo nào.</div>
+                    <div className="text-[#a7a7a7] italic py-10 px-2">Bạn chưa có thông báo nào.</div>
                 ) : (
                     notifications.map((noti) => (
                         <div
@@ -152,12 +146,10 @@ export const NotificationsPage = () => {
                             style={{ cursor: noti.isRead ? 'default' : 'pointer' }}
                         >
                             <div className="noti-item-left">
-                                {/* Ảnh đại diện người gửi */}
                                 <img src={getAvatarUrl(noti.senderId?.avatar)} alt="avatar" className="noti-avatar" />
                                 <div className="noti-content">
                                     <div className="noti-text">
                                         <strong>{renderNotificationText(noti)}</strong>
-                                        {/* Nếu type là thông báo bài hát thì có thể chèn thêm tên bài hát ở đây nếu Back-end có trả về entityName */}
                                     </div>
                                     <div className="noti-time">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -170,10 +162,8 @@ export const NotificationsPage = () => {
                             </div>
 
                             <div className="noti-item-right flex items-center gap-3">
-                                {/* Chấm tròn báo chưa đọc */}
                                 {!noti.isRead && <div className="w-2.5 h-2.5 bg-[#1ed760] rounded-full shadow-[0_0_8px_#1ed760]"></div>}
 
-                                {/* HIỂN THỊ ẢNH BÌA BÀI HÁT THẬT */}
                                 {['like_song', 'new_upload', 'comment', 'repost'].includes(noti.type) && noti.entityDetails?.coverUrl && (
                                     <img
                                         src={getAvatarUrl(noti.entityDetails.coverUrl)}
@@ -182,7 +172,6 @@ export const NotificationsPage = () => {
                                     />
                                 )}
 
-                                {/* HIỂN THỊ NÚT FOLLOW BACK */}
                                 {noti.type === 'follow' && <button className="noti-follow-btn">Follow back</button>}
                             </div>
                         </div>

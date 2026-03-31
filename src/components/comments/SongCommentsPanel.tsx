@@ -1,57 +1,51 @@
 ﻿import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
-import { Heart, MessageCircle, Send, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, Send, Trash2, X } from "lucide-react";
 import type { Song } from "../../context/MusicPlayerContext";
 import { commentService, type SongComment } from "../../services/commentService";
 
+const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
+
 type SongCommentsPanelProps = {
   song: Song;
+  onClose?: () => void; // Props bắt sự kiện Đóng
 };
 
 const formatTimeAgo = (dateString: string) => {
   const timestamp = new Date(dateString).getTime();
-  if (Number.isNaN(timestamp)) {
-    return "Vừa xong";
-  }
+  if (Number.isNaN(timestamp)) return "Vừa xong";
 
   const diffInMinutes = Math.max(1, Math.floor((Date.now() - timestamp) / 60000));
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes} phút trước`;
-  }
+  if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
 
   const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) {
-    return `${diffInHours} giờ trước`;
-  }
+  if (diffInHours < 24) return `${diffInHours} giờ trước`;
 
   const diffInDays = Math.floor(diffInHours / 24);
   return `${diffInDays} ngày trước`;
 };
 
 const getAvatarLabel = (name: string) => {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() || "")
-    .join("");
+  return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() || "").join("");
+};
+
+// Hàm chuẩn hóa đường dẫn Avatar thật
+const getImageUrl = (url?: string) => {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  const filename = url.replace(/^.*[\\\/]/, '');
+  return `${BACKEND_URL}/uploads/${filename}`;
 };
 
 const formatExactTime = (dateString: string) => {
   const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
+  if (Number.isNaN(date.getTime())) return "";
 
   return new Intl.DateTimeFormat("vi-VN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
+    hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric",
   }).format(date);
 };
 
-export const SongCommentsPanel = ({ song }: SongCommentsPanelProps) => {
+export const SongCommentsPanel = ({ song, onClose }: SongCommentsPanelProps) => {
   const [comments, setComments] = useState<SongComment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
@@ -69,7 +63,6 @@ export const SongCommentsPanel = ({ song }: SongCommentsPanelProps) => {
         const data = await commentService.getSongComments(song.id);
         setComments(data);
       } catch (error) {
-        console.error("Lỗi khi tải bình luận:", error);
         setErrorMessage("Không tải được bình luận cho bài hát này.");
       } finally {
         setLoading(false);
@@ -85,9 +78,7 @@ export const SongCommentsPanel = ({ song }: SongCommentsPanelProps) => {
 
   const handleSubmit = async () => {
     const trimmedComment = newComment.trim();
-    if (!trimmedComment || submitting) {
-      return;
-    }
+    if (!trimmedComment || submitting) return;
 
     if (!isLoggedIn) {
       setErrorMessage("Bạn cần đăng nhập để gửi bình luận.");
@@ -101,7 +92,6 @@ export const SongCommentsPanel = ({ song }: SongCommentsPanelProps) => {
       setComments((currentComments) => [createdComment, ...currentComments]);
       setNewComment("");
     } catch (error) {
-      console.error("Lỗi khi gửi bình luận:", error);
       setErrorMessage("Gửi bình luận thất bại. Thử lại giúp mình nhé.");
     } finally {
       setSubmitting(false);
@@ -109,9 +99,7 @@ export const SongCommentsPanel = ({ song }: SongCommentsPanelProps) => {
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      handleSubmit();
-    }
+    if (event.key === "Enter") handleSubmit();
   };
 
   const handleToggleLike = async (commentId: string) => {
@@ -126,7 +114,6 @@ export const SongCommentsPanel = ({ song }: SongCommentsPanelProps) => {
         currentComments.map((comment) => (comment.id === commentId ? updatedComment : comment))
       );
     } catch (error) {
-      console.error("Lỗi khi thích bình luận:", error);
       setErrorMessage("Không cập nhật được lượt thích lúc này.");
     }
   };
@@ -137,7 +124,6 @@ export const SongCommentsPanel = ({ song }: SongCommentsPanelProps) => {
       await commentService.deleteSongComment(song.id, commentId);
       setComments((currentComments) => currentComments.filter((comment) => comment.id !== commentId));
     } catch (error) {
-      console.error("Lỗi khi xóa bình luận:", error);
       setErrorMessage("Không xóa được bình luận này lúc này.");
     }
   };
@@ -157,7 +143,7 @@ export const SongCommentsPanel = ({ song }: SongCommentsPanelProps) => {
             {song.title} • {song.artist}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {hasHiddenComments && (
             <button
               onClick={() => setIsShowingAllComments((current) => !current)}
@@ -169,6 +155,16 @@ export const SongCommentsPanel = ({ song }: SongCommentsPanelProps) => {
           <span className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-[#a7a7a7]">
             {comments.length} bình luận
           </span>
+          {/* NÚT TẮT COMMENT KHIẾN CHO BACK VỀ POPULAR ARTISTS */}
+          {onClose && (
+            <button 
+              onClick={onClose} 
+              className="p-1 rounded-full text-[#a7a7a7] hover:text-white hover:bg-white/10 transition"
+              title="Đóng bình luận"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -217,57 +213,58 @@ export const SongCommentsPanel = ({ song }: SongCommentsPanelProps) => {
         )}
 
         {!loading &&
-          visibleComments.map((comment) => (
-            <div key={comment.id} className="rounded-2xl border border-white/5 bg-[#202020] p-3.5">
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1ed760] text-xs font-bold text-black">
-                  {getAvatarLabel(comment.user.name)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="truncate text-sm font-semibold text-white">{comment.user.name}</div>
-                    <div className="shrink-0 text-right text-[11px] text-[#8a8a8a]">
-                      <div>{formatTimeAgo(comment.createdAt)}</div>
-                      <div>{formatExactTime(comment.createdAt)}</div>
-                    </div>
-                  </div>
-                  <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-[#e5e5e5]">
-                    {comment.content}
-                  </p>
-                  <div className="mt-3 flex items-center gap-4">
-                    <button
-                      onClick={() => handleToggleLike(comment.id)}
-                      className={`flex items-center gap-1.5 text-xs font-medium transition ${
-                        comment.isLiked ? "text-[#1ed760]" : "text-[#a7a7a7] hover:text-white"
-                      }`}
-                    >
-                      <Heart size={14} className={comment.isLiked ? "fill-current" : ""} />
-                      {comment.likesCount}
-                    </button>
-                    {comment.canDelete && (
-                      <button
-                        onClick={() => handleDeleteComment(comment.id)}
-                        title="Xóa bình luận của mình"
-                        aria-label="Xóa bình luận của mình"
-                        className="flex items-center text-xs font-medium text-[#a7a7a7] transition hover:text-red-300"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+          visibleComments.map((comment) => {
+            const avatarUrl = getImageUrl(comment.user.avatar); // Xử lý Link Avatar
+
+            return (
+              <div key={comment.id} className="rounded-2xl border border-white/5 bg-[#202020] p-3.5">
+                <div className="flex items-start gap-3">
+                  
+                  {/* HIỂN THỊ ẢNH AVATAR THẬT (Nếu có), ngược lại hiện chữ */}
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1ed760] overflow-hidden text-xs font-bold text-black">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={comment.user.name} className="h-full w-full object-cover" />
+                    ) : (
+                      getAvatarLabel(comment.user.name)
                     )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="truncate text-sm font-semibold text-white">{comment.user.name}</div>
+                      <div className="shrink-0 text-right text-[11px] text-[#8a8a8a]">
+                        <div>{formatTimeAgo(comment.createdAt)}</div>
+                        <div>{formatExactTime(comment.createdAt)}</div>
+                      </div>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-[#e5e5e5]">
+                      {comment.content}
+                    </p>
+                    <div className="mt-3 flex items-center gap-4">
+                      <button
+                        onClick={() => handleToggleLike(comment.id)}
+                        className={`flex items-center gap-1.5 text-xs font-medium transition ${
+                          comment.isLiked ? "text-[#1ed760]" : "text-[#a7a7a7] hover:text-white"
+                        }`}
+                      >
+                        <Heart size={14} className={comment.isLiked ? "fill-current" : ""} />
+                        {comment.likesCount}
+                      </button>
+                      {comment.canDelete && (
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          title="Xóa bình luận của mình"
+                          className="flex items-center text-xs font-medium text-[#a7a7a7] transition hover:text-red-300"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-
-        {!loading && hasHiddenComments && !isShowingAllComments && (
-          <button
-            onClick={() => setIsShowingAllComments(true)}
-            className="rounded-2xl border border-dashed border-white/10 px-4 py-3 text-sm text-[#a7a7a7] transition hover:border-white/25 hover:text-white"
-          >
-            Xem tất cả bình luận ({comments.length})
-          </button>
-        )}
+            );
+          })}
       </div>
     </div>
   );
