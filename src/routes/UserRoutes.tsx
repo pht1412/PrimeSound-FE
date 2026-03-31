@@ -15,11 +15,10 @@ import { PlaylistDetailPage } from "../pages/PlaylistDetailPage";
 export default function UserRoutes() {
   return (
     <Routes>
-      {/* Route Cha chứa Layout */}
       <Route element={<MainLayout />}>
-        {/* Các Route con sẽ được render vào thẻ <Outlet /> bên trong MainLayout */}
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
+        <Route path="/home/profile" element={<ProfilePage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/favorites" element={<FavoriteSongsPage />} />
@@ -29,8 +28,7 @@ export default function UserRoutes() {
         <Route path="/playlists" element={<PlaylistPage />} />
         <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
       </Route>
-
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>
   );
 }

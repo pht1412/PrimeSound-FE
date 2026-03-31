@@ -14,9 +14,9 @@ export const EditProfileModal = ({ user, onClose, onSuccess }: EditProfileModalP
   const [loading, setLoading] = useState(false);
 
   // --- STATE CHO TAB PROFILE ---
-  const [name, setName] = useState(user?.name || '');
+  const [name, setName] = useState(user?.name ?? "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string>('');
+  const [avatarPreview, setAvatarPreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // --- STATE CHO TAB PASSWORD ---
@@ -105,17 +105,29 @@ export const EditProfileModal = ({ user, onClose, onSuccess }: EditProfileModalP
             <form onSubmit={handleUpdateProfile} className="space-y-6">
               <div className="flex items-center gap-6">
                 {/* Khu vực bấm đổi Avatar */}
-                <div 
+                <div
                   className="relative w-32 h-32 rounded-full overflow-hidden bg-[#121212] group cursor-pointer border-2 border-transparent hover:border-[#1ed760] transition-all shadow-xl flex-shrink-0"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {/* Hiển thị ảnh ảo (nếu vừa chọn) hoặc ảnh cũ */}
-                  {(avatarPreview || user?.avatar) && (
-                    <img 
-                      src={avatarPreview || `http://localhost:5000/uploads/${user.avatar.replace(/^.*[\\\/]/, '')}`} 
-                      alt="Preview" 
-                      className="w-full h-full object-cover" 
+                  {(avatarPreview || user?.avatar) ? (
+                    <img
+                      src={
+                        avatarPreview ||
+                        (user?.avatar
+                          ? `${import.meta.env.VITE_SERVER_URL || "http://localhost:5000"}/uploads/${user.avatar.replace(/^.*[\\/]/, "")}`
+                          : "")
+                      }
+                      alt="Preview"
+                      className="w-full h-full object-cover"
                     />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[#555]">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                        <circle cx="12" cy="13" r="4" />
+                      </svg>
+                    </div>
                   )}
                   {/* Lớp phủ đen khi Hover báo hiệu có thể click */}
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

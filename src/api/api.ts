@@ -40,9 +40,9 @@ apiClient.interceptors.response.use(
       console.error("Token hết hạn hoặc bạn chưa đăng nhập!");
       // Có thể gọi hàm logout hoặc xóa token ở đây
     }
-    
+
     // Trả lỗi về cho component tự xử lý tiếp nếu cần
-    return Promise.reject(error.response?.data || error.message);
+    return Promise.reject(error.response?.data ?? error.message);
   }
 );
 

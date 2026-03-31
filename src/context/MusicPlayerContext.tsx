@@ -1,6 +1,6 @@
 // src/context/MusicPlayerContext.tsx
-import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
-import { songService } from '../services/songService'; // Import service để gọi API tăng view
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from "react";
+import { songService } from "../services/songService";
 
 export interface Song {
   id: string;
@@ -15,15 +15,28 @@ export interface Song {
   audioUrl: string;
 }
 
+export type RepeatMode = "off" | "all" | "one";
+
+export interface PlaySongOptions {
+  /** Danh sách để Next/Previous/Shuffle (vd: cả hàng Discovery) */
+  queue?: Song[];
+}
+
 interface MusicPlayerContextType {
   currentSong: Song | null;
   isPlaying: boolean;
   progress: number;
-  currentTime: number;     // Thêm thời gian hiện tại
-  duration: number;        // Thêm tổng thời gian
-  playSong: (song: Song) => void;
+  currentTime: number;
+  duration: number;
+  playSong: (song: Song, opts?: PlaySongOptions) => void;
   togglePlay: () => void;
-  seek: (time: number) => void; // Thêm hàm tua nhạc
+  seek: (time: number) => void;
+  playNext: () => void;
+  playPrevious: () => void;
+  shuffle: boolean;
+  toggleShuffle: () => void;
+  repeatMode: RepeatMode;
+  cycleRepeat: () => void;
   audioRef: React.RefObject<HTMLAudioElement | null>;
 }
 
@@ -31,35 +44,145 @@ const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(und
 
 export const MusicPlayerProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  const [queue, setQueue] = useState<Song[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [shuffle, setShuffle] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>("off");
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const queueRef = useRef<Song[]>([]);
+  const currentIndexRef = useRef(0);
+  const currentSongRef = useRef<Song | null>(null);
+  const repeatModeRef = useRef<RepeatMode>("off");
+  const shuffleRef = useRef(false);
 
-  const playSong = (song: Song) => {
-    setCurrentSong(song);
-    setIsPlaying(true);
-  };
+  useEffect(() => {
+    queueRef.current = queue;
+  }, [queue]);
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+  useEffect(() => {
+    currentSongRef.current = currentSong;
+  }, [currentSong]);
+  useEffect(() => {
+    repeatModeRef.current = repeatMode;
+  }, [repeatMode]);
+  useEffect(() => {
+    shuffleRef.current = shuffle;
+  }, [shuffle]);
 
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  // Hàm xử lý tua nhạc
-  const seek = (time: number) => {
+  const seek = useCallback((time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
       setCurrentTime(time);
     }
-  };
+  }, []);
+
+  const playNext = useCallback(() => {
+    const q = queueRef.current;
+    const idx = currentIndexRef.current;
+    if (!q.length) {
+      setIsPlaying(false);
+      return;
+    }
+
+    if (shuffleRef.current && q.length > 1) {
+      let ni = idx;
+      while (ni === idx) ni = Math.floor(Math.random() * q.length);
+      setCurrentIndex(ni);
+      setCurrentSong(q[ni]);
+      setIsPlaying(true);
+      return;
+    }
+
+    let next = idx + 1;
+    if (next >= q.length) {
+      if (repeatModeRef.current === "all") next = 0;
+      else {
+        setIsPlaying(false);
+        return;
+      }
+    }
+    setCurrentIndex(next);
+    setCurrentSong(q[next]);
+    setIsPlaying(true);
+  }, []);
+
+  const playPrevious = useCallback(() => {
+    const q = queueRef.current;
+    const idx = currentIndexRef.current;
+    if (!q.length) return;
+
+    const audio = audioRef.current;
+    if (audio && audio.currentTime > 3) {
+      audio.currentTime = 0;
+      setCurrentTime(0);
+      return;
+    }
+
+    let prev = idx - 1;
+    if (prev < 0) {
+      if (repeatModeRef.current === "all") prev = q.length - 1;
+      else {
+        if (audio) {
+          audio.currentTime = 0;
+          setCurrentTime(0);
+        }
+        return;
+      }
+    }
+    setCurrentIndex(prev);
+    setCurrentSong(q[prev]);
+    setIsPlaying(true);
+  }, []);
+
+  const playNextRef = useRef(playNext);
+  playNextRef.current = playNext;
+
+  const playSong = useCallback((song: Song, opts?: PlaySongOptions) => {
+    if (opts?.queue && opts.queue.length > 0) {
+      const q = [...opts.queue];
+      const idx = q.findIndex((s) => s.id === song.id);
+      if (idx >= 0) {
+        setQueue(q);
+        setCurrentIndex(idx);
+        setCurrentSong(q[idx]);
+      } else {
+        setQueue([song]);
+        setCurrentIndex(0);
+        setCurrentSong(song);
+      }
+    } else {
+      setQueue([song]);
+      setCurrentIndex(0);
+      setCurrentSong(song);
+    }
+    setIsPlaying(true);
+  }, []);
+
+  const togglePlay = useCallback(() => {
+    if (!audioRef.current || !currentSongRef.current) return;
+    if (audioRef.current.paused) {
+      void audioRef.current.play();
+      setIsPlaying(true);
+    } else {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  }, []);
+
+  const toggleShuffle = useCallback(() => {
+    setShuffle((s) => !s);
+  }, []);
+
+  const cycleRepeat = useCallback(() => {
+    setRepeatMode((m) => (m === "off" ? "all" : m === "all" ? "one" : "off"));
+  }, []);
 
   useEffect(() => {
     if (currentSong && audioRef.current) {
@@ -68,33 +191,64 @@ export const MusicPlayerProvider = ({ children }: { children: React.ReactNode })
     }
   }, [currentSong]);
 
+  const handleEnded = useCallback(async () => {
+    if (repeatModeRef.current === "one" && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      try {
+        await audioRef.current.play();
+        setIsPlaying(true);
+      } catch {
+        setIsPlaying(false);
+      }
+      return;
+    }
+
+    const ended = currentSongRef.current;
+    if (ended) {
+      try {
+        await songService.incrementPlayCount(ended.id);
+      } catch (e) {
+        console.error("Lỗi khi tăng view:", e);
+      }
+    }
+
+    playNextRef.current();
+  }, []);
+
   return (
-    <MusicPlayerContext.Provider value={{ currentSong, isPlaying, progress, currentTime, duration, playSong, togglePlay, seek, audioRef }}>
+    <MusicPlayerContext.Provider
+      value={{
+        currentSong,
+        isPlaying,
+        progress,
+        currentTime,
+        duration,
+        playSong,
+        togglePlay,
+        seek,
+        playNext,
+        playPrevious,
+        shuffle,
+        toggleShuffle,
+        repeatMode,
+        cycleRepeat,
+        audioRef,
+      }}
+    >
       {children}
       <audio
         ref={audioRef}
         onLoadedMetadata={() => {
-          // Khi tải xong meta data của file mp3, lấy luôn tổng thời gian
-          if (audioRef.current) setDuration(audioRef.current.duration);
+          if (audioRef.current) setDuration(audioRef.current.duration || 0);
         }}
         onTimeUpdate={() => {
           if (audioRef.current) {
             setCurrentTime(audioRef.current.currentTime);
-            setProgress((audioRef.current.currentTime / audioRef.current.duration) * 100 || 0);
+            const d = audioRef.current.duration;
+            setProgress(d ? (audioRef.current.currentTime / d) * 100 : 0);
           }
         }}
-        onEnded={async () => {
-          setIsPlaying(false);
-          // 💥 ĐIỂM ĂN TIỀN: Khi hết bài, âm thầm gọi API tăng View!
-          if (currentSong) {
-            try {
-              await songService.incrementPlayCount(currentSong.id);
-              console.log("Đã tăng view cho bài hát:", currentSong.title);
-            } catch (error) {
-              console.error("Lỗi khi tăng view:", error);
-            }
-          }
-        }}
+        onEnded={handleEnded}
       />
     </MusicPlayerContext.Provider>
   );

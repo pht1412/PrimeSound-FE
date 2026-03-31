@@ -11,7 +11,6 @@ export const FooterPlayer = () => {
   const { currentSong, isPlaying, togglePlay, progress, currentTime, duration, seek, audioRef } = useMusicPlayer();
   const { isLiked, toggleLike } = useFavorites();
 
-  // 2. CÁC STATE QUẢN LÝ KÉO TRƯỢT (DRAG)
   const [isDraggingProgress, setIsDraggingProgress] = useState(false);
   const [dragProgress, setDragProgress] = useState(0);
 
@@ -19,6 +18,7 @@ export const FooterPlayer = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [prevVolume, setPrevVolume] = useState(1);
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);
+  const [liked, setLiked] = useState(false);
 
   // 3. LIKE STATE: Chỉ track loading state, trạng thái like lấy từ global context
   const [likeLoading, setLikeLoading] = useState(false);
@@ -87,15 +87,10 @@ export const FooterPlayer = () => {
   const progressBarRef = useRef<HTMLDivElement>(null);
   const volumeBarRef = useRef<HTMLDivElement>(null);
 
-  // --- HÀM TIỆN ÍCH ---
-  const formatTime = (time: number) => {
-    if (!time || isNaN(time)) return "0:00";
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-  };
+  useEffect(() => {
+    setLiked(false);
+  }, [currentSong?.id]);
 
-  // --- LOGIC: CẬP NHẬT ÂM LƯỢNG CHO THẺ AUDIO ---
   useEffect(() => {
     if (audioRef?.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
@@ -133,15 +128,14 @@ export const FooterPlayer = () => {
     };
 
     if (isDraggingProgress || isDraggingVolume) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
     }
-
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
     };
-  }, [isDraggingProgress, isDraggingVolume, duration, seek, isMuted]);
+  }, [isDraggingProgress, isDraggingVolume, duration, seek, applyProgressFromClientX, applyVolumeFromClientX]);
 
   // --- LOGIC: CLICK ĐỂ MUTE/UNMUTE ---
   const toggleMute = () => {
@@ -151,7 +145,6 @@ export const FooterPlayer = () => {
     } else {
       setPrevVolume(volume);
       setIsMuted(true);
-      setVolume(0);
     }
   };
 
@@ -170,11 +163,20 @@ export const FooterPlayer = () => {
     }
   };
 
-  // Tính toán thời gian & % tiến trình để hiển thị UI
-  const displayProgress = isDraggingProgress ? dragProgress : progress;
-  const displayTime = isDraggingProgress ? (dragProgress / 100) * duration : currentTime;
-  const displayVolume = isMuted ? 0 : volume;
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!progressBarRef.current || !duration) return;
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const p = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    seek(p * duration);
+  };
 
+  const handleVolumeClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!volumeBarRef.current) return;
+    const rect = volumeBarRef.current.getBoundingClientRect();
+    const v = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setVolume(v);
+    if (isMuted && v > 0) setIsMuted(false);
+  };
 
   return (
     <footer className="h-[90px] w-full bg-[#181818] border-t border-[#282828] flex items-center justify-between px-4 z-50 flex-shrink-0 select-none">
@@ -183,15 +185,34 @@ export const FooterPlayer = () => {
       <div className="flex items-center gap-4 w-[30%] min-w-[180px]">
         {currentSong ? (
           <>
-            <img src={currentSong.cover} alt="Album art" className="w-14 h-14 rounded-md object-cover shadow-lg" />
-            <div className="flex flex-col">
-              <a href="#" className="text-white text-sm font-semibold hover:underline line-clamp-1">{currentSong.title}</a>
-              <a href="#" className="text-[#b3b3b3] text-xs hover:underline hover:text-white line-clamp-1">{currentSong.artist}</a>
+            <div className="w-14 h-14 rounded-md overflow-hidden bg-[#333] shrink-0 shadow-lg">
+              <img src={currentSong.cover} alt="" className="w-full h-full object-cover" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-bold text-white text-sm truncate">{currentSong.title}</div>
+              <div className="text-[#99a1ae] text-[11px] truncate">{currentSong.artist}</div>
             </div>
           </>
         ) : (
-          <div className="text-gray-500 text-sm">Chưa có bài hát</div>
+          <>
+            <div className="w-14 h-14 rounded-md bg-[#333] flex items-center justify-center shrink-0">
+              <span className="text-[#666] text-[10px]">Cover</span>
+            </div>
+            <div className="min-w-0">
+              <div className="font-bold text-white text-sm">Chưa phát bài nào</div>
+              <div className="text-[#99a1ae] text-[11px]">—</div>
+            </div>
+          </>
         )}
+        <button
+          type="button"
+          onClick={() => setLiked((v) => !v)}
+          className="text-[#99a1ae] hover:text-[#1db954] shrink-0 ml-1"
+          aria-label={liked ? "Bỏ thích" : "Thích"}
+          disabled={!currentSong}
+        >
+          <HeartIcon filled={liked} />
+        </button>
       </div>
 
       {/* 2. BẢNG ĐIỀU KHIỂN & THANH TIẾN TRÌNH */}
@@ -202,13 +223,27 @@ export const FooterPlayer = () => {
           <button
             onClick={togglePlay}
             disabled={!currentSong}
-            className={`w-8 h-8 flex items-center justify-center bg-white rounded-full text-black transition-transform ${currentSong ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'}`}
+            className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed text-black"
+            aria-label={isPlaying ? "Tạm dừng" : "Phát"}
           >
-            {isPlaying ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
-            )}
+            {isPlaying ? <PauseIcon /> : <PlayIcon />}
+          </button>
+          <button
+            type="button"
+            onClick={playNext}
+            disabled={!currentSong}
+            className="w-8 h-8 flex items-center justify-center hover:text-white disabled:opacity-40"
+            aria-label="Bài tiếp"
+          >
+            <NextIcon />
+          </button>
+          <button
+            type="button"
+            onClick={cycleRepeat}
+            className="w-8 h-8 flex items-center justify-center hover:text-white"
+            aria-label={`Lặp lại: ${repeatMode}`}
+          >
+            <RepeatIcon mode={repeatMode} />
           </button>
 
           {/* NÚT LIKE/UNLIKE */}
@@ -263,14 +298,16 @@ export const FooterPlayer = () => {
 
           <div
             ref={progressBarRef}
-            className="h-1 flex-1 rounded-full group cursor-pointer flex items-center relative py-2"
+            role="slider"
+            aria-valuenow={Math.round(displayProgress)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            className="flex h-1 flex-1 min-w-0 bg-[#495565] rounded-full cursor-pointer group relative py-2 -my-2"
+            onClick={handleProgressClick}
             onMouseDown={(e) => {
-              if (duration) {
-                setIsDraggingProgress(true);
-                // Cập nhật vị trí ngay lập tức khi click chuột xuống
-                const rect = e.currentTarget.getBoundingClientRect();
-                setDragProgress(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) * 100);
-              }
+              if (!duration) return;
+              setIsDraggingProgress(true);
+              applyProgressFromClientX(e.clientX, e.currentTarget);
             }}
           >
             {/* Thanh màu nền */}

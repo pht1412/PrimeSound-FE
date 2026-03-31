@@ -108,7 +108,7 @@ export const Home = () => {
 
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => playSong(trendingSong)}
+                  onClick={() => playSong(trendingSong, { queue: trendingSong ? [trendingSong] : undefined })}
                   className="bg-[#1ed760] hover:bg-[#3be477] text-black font-bold py-3 px-8 rounded-full flex items-center gap-2 transition-all hover:scale-105"
                 >
                   {currentSong?.id === trendingSong.id && isPlaying ? "Pause" : "Play Now"}
@@ -127,7 +127,7 @@ export const Home = () => {
           </div>
           <div className="flex gap-6 overflow-x-auto custom-scrollbar pb-4">
             {topArtists.map((song) => (
-              <div key={song.id} className="flex flex-col items-center gap-3 min-w-[140px] group cursor-pointer" onClick={() => playSong(song)}>
+              <div key={song.id} className="flex flex-col items-center gap-3 min-w-[140px] group cursor-pointer" onClick={() => playSong(song, { queue: topArtists })}>
                 <div className="w-[140px] h-[140px] overflow-hidden rounded-2xl shadow-md">
                   <img src={song.cover} alt={song.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 </div>
@@ -150,7 +150,7 @@ export const Home = () => {
           </div>
           <div className="flex gap-6 overflow-x-auto custom-scrollbar pb-4">
             {billboards.map((song) => (
-              <div key={song.id} className="flex flex-col items-center gap-3 min-w-[140px] group cursor-pointer" onClick={() => playSong(song)}>
+              <div key={song.id} className="flex flex-col items-center gap-3 min-w-[140px] group cursor-pointer" onClick={() => playSong(song, { queue: billboards })}>
                 <div className="w-[140px] h-[140px] overflow-hidden rounded-2xl shadow-md">
                   <img src={song.cover} alt={song.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 </div>

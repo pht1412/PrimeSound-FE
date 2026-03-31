@@ -15,7 +15,7 @@ export default function InputField({ label, name, type = "text", placeholder, va
       <input
         name={name}
         type={type}
-        value={value}
+        value={value ?? ''}
         onChange={onChange}
         placeholder={placeholder}
         className="spotify-input-field"

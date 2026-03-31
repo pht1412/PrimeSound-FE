@@ -2,10 +2,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import AuthPage from "./pages/AuthPage";
 import MusicWebAppPage from "./pages/MusicWebAppPage";
 import UserRoutes from "./routes/UserRoutes";
+import { AccountPage } from "./pages/AccountPage";
 import { MusicPlayerProvider } from "./context/MusicPlayerContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import { PlaylistProvider } from "./context/PlaylistContext";
