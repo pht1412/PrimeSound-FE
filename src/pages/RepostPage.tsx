@@ -13,6 +13,7 @@ import { repostService } from '../services/repostService';
 import { userService } from '../services/userService'; 
 import { useFavorites } from '../context/FavoritesContext'; // BƯỚC 4: Nút Like
 import { useMusicPlayer } from '../context/MusicPlayerContext'; // BƯỚC 5: Play Nhạc
+import RepostButton from '../components/repost/RepostButton';
 
 const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
@@ -40,6 +41,8 @@ const RepostPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [heroCover, setHeroCover] = useState<string>("https://placehold.co/240x240/1f1f1f/white?text=Reposts");
+  const [locallyUnreposted, setLocallyUnreposted] = useState<string[]>([]);
+  const { currentSong, updateCurrentSong } = useMusicPlayer() as any;
 
   useEffect(() => {
     const fetchUserAndReposts = async () => {
@@ -56,7 +59,6 @@ const RepostPage: React.FC = () => {
         const repostsArray = repostsResponse.data?.reposts || [];
         setReposts(repostsArray);
 
-        // BƯỚC 3: Lấy ảnh bài hát đầu tiên làm Cover Tổng
         if (repostsArray.length > 0) {
           const firstSongCover = repostsArray[0].repostedItem?.coverUrl;
           setHeroCover(getImageUrl(firstSongCover));
@@ -73,15 +75,31 @@ const RepostPage: React.FC = () => {
     fetchUserAndReposts();
   }, []);
 
-  const handleUnrepost = async (itemId: string) => {
-    try {
-      await repostService.deleteRepost(itemId);
-      setReposts(prevReposts => 
-        prevReposts.filter(repost => repost.repostedItem._id !== itemId)
-      );
-    } catch (err) {
-      console.error('Failed to un-repost:', err);
-      alert('Failed to remove repost. Please try again.');
+  useEffect(() => {
+    if (currentSong && typeof currentSong.isReposted === 'boolean') {
+      const { id, isReposted } = currentSong;
+      
+      setLocallyUnreposted(prev => {
+        const isAlreadyLocallyUnreposted = prev.includes(id);
+
+        if (!isReposted && !isAlreadyLocallyUnreposted) {
+          return [...prev, id];
+        } else if (isReposted && isAlreadyLocallyUnreposted) {
+          return prev.filter(repostId => repostId !== id);
+        }
+        
+        return prev;
+      });
+    }
+  }, [currentSong, currentSong?.isReposted]);
+
+  const handleToggleRepost = (itemId: string, isReposted: boolean) => {
+    setLocallyUnreposted(prev => 
+      isReposted ? prev.filter(id => id !== itemId) : [...prev, itemId]
+    );
+
+    if (currentSong?.id === itemId) {
+      updateCurrentSong({ isReposted });
     }
   };
 
@@ -91,13 +109,15 @@ const RepostPage: React.FC = () => {
       console.warn("Chưa tìm thấy hàm playSong trong Context");
       return;
     }
+    const isReposted = !locallyUnreposted.includes(songData._id);
     // Gửi định dạng data vào MusicContext (Bạn có thể điều chỉnh lại các key cho khớp với interface của MusicContext hiện tại)
     playSong({
       id: songData._id,
       title: songData.title,
       artist: songData.artist?.name || songData.artist?.stageName || 'Unknown Artist',
       cover: getImageUrl(songData.coverUrl),
-      audioUrl: `${BACKEND_URL}/api/v1/songs/${songData._id}/stream`
+      audioUrl: `${BACKEND_URL}/api/v1/songs/${songData._id}/stream`,
+      isReposted: isReposted
     });
   };
 
@@ -137,6 +157,8 @@ const RepostPage: React.FC = () => {
         <div className="flex items-end gap-6 mb-8">
           <div className="w-60 h-60 shadow-2xl shadow-black/50 shrink-0">
             <img src={heroCover} alt="Mix Cover" className="w-full h-full object-cover rounded-md" />
+
+            <RepostButton itemId='69cbb8a2232663b4b37fc2b9' itemType='Song' initialIsReposted={false}></RepostButton>
           </div>
           
           <div className="flex flex-col justify-end w-full pb-2">
@@ -215,7 +237,7 @@ const RepostPage: React.FC = () => {
                           {item.title || 'Unknown Title'}
                         </span>
                         <span className="text-sm text-gray-400 truncate">
-                          {item.artist?.name || item.artist?.stageName || 'Unknown Artist'}
+                          {repost.user.name || item.artist?.name || 'Unknown Artist'}
                         </span>
                       </div>
                     </div>
@@ -241,22 +263,17 @@ const RepostPage: React.FC = () => {
                         <Heart className={`w-5 h-5 transition-colors ${currentlyLiked ? 'fill-[#1ed760] text-[#1ed760]' : 'hover:text-white'}`} />
                       </button>
 
-                      {/* Nút Unrepost */}
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation(); 
-                          handleUnrepost(item._id);
-                        }}
-                        className="hover:scale-110 transition"
-                        title="Remove Repost"
-                      >
-                        <RefreshCcw className="w-5 h-5 text-[#1ed760]" />
-                      </button>
+                      <RepostButton
+                        itemId={item._id}
+                        itemType="Song"
+                        initialIsReposted={!locallyUnreposted.includes(item._id)}
+                        onToggle={(isReposted) => handleToggleRepost(item._id, isReposted)}
+                      />
 
                       <span className="text-sm w-8 text-right">
                         {formatTime(item.duration)}
                       </span>
-                      <MoreHorizontal className="w-5 h-5 hover:text-white transition opacity-0 group-hover:opacity-100" />
+                      <MoreHorizontal className="w-5 h-5 hover:text-white transition opacity-0 group-hover:opacity-100" onClick={(e) => e.stopPropagation()} />
                     </div>
                   </div>
                 );

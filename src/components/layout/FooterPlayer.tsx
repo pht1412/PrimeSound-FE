@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 
 export const FooterPlayer = () => {
   // 1. LẤY DỮ LIỆU TỪ CONTEXT
-  const { currentSong, isPlaying, togglePlay, progress, currentTime, duration, seek, audioRef } = useMusicPlayer();
+  const { currentSong, isPlaying, togglePlay, progress, currentTime, duration, seek, audioRef, updateCurrentSong } = useMusicPlayer();
   const { isLiked, toggleLike } = useFavorites();
 
   // 2. CÁC STATE QUẢN LÝ KÉO TRƯỢT (DRAG)
@@ -23,46 +23,28 @@ export const FooterPlayer = () => {
   // 3. LIKE STATE: Chỉ track loading state
   const [likeLoading, setLikeLoading] = useState(false);
 
-  // ==================== BẮT ĐẦU LOGIC REPOST ====================
-  const [isReposted, setIsReposted] = useState(false);
   const [repostLoading, setRepostLoading] = useState(false);
-
-  useEffect(() => {
-    const checkRepostStatus = async () => {
-      if (!currentSong) return;
-      try {
-        const user: any = await userService.getMe();
-        const res: any = await repostService.getUserReposts(user._id || user.id);
-        const userReposts = res.data?.reposts || [];
-
-        const isFound = userReposts.some((r: any) => r.repostedItem?._id === currentSong.id);
-        setIsReposted(isFound);
-      } catch (error) {
-        console.error("Lỗi khi kiểm tra trạng thái repost:", error);
-      }
-    };
-
-    checkRepostStatus();
-  }, [currentSong]);
+  const isReposted = currentSong?.isReposted ?? false;
 
   const handleToggleRepost = async () => {
     if (!currentSong || repostLoading) return;
     setRepostLoading(true);
+    const newIsReposted = !isReposted;
 
     try {
-      if (isReposted) {
-        await repostService.deleteRepost(currentSong.id);
-        setIsReposted(false);
-        toast.success("Đã xóa bài đăng lại!");
-      } else {
+      if (newIsReposted) {
         await repostService.createRepost({ itemId: currentSong.id, itemType: 'Song' });
-        setIsReposted(true);
         toast.success("Đã đăng lại bài hát!");
+      } else {
+        await repostService.deleteRepost(currentSong.id);
+        toast.success("Đã xóa bài đăng lại!");
       }
+      updateCurrentSong({ isReposted: newIsReposted });
+
     } catch (error: any) {
       if (error?.status === 409 || error?.message?.includes('đã đăng lại')) {
         toast.info("Bạn đã đăng lại bài này rồi!");
-        setIsReposted(true);
+        updateCurrentSong({ isReposted: true });
       } else {
         toast.error("Có lỗi xảy ra, vui lòng thử lại!");
       }

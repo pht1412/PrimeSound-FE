@@ -13,6 +13,7 @@ export interface Song {
   uploadedBy?: string;
   cover: string;
   audioUrl: string;
+  isReposted?: boolean;
 }
 
 export type RepeatMode = "off" | "all" | "one";
@@ -38,6 +39,7 @@ interface MusicPlayerContextType {
   repeatMode: RepeatMode;
   cycleRepeat: () => void;
   audioRef: React.RefObject<HTMLAudioElement | null>;
+  updateCurrentSong: (song: Partial<Song>) => void; // Thêm dòng này
 }
 
 const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(undefined);
@@ -59,6 +61,10 @@ export const MusicPlayerProvider = ({ children }: { children: React.ReactNode })
   const currentSongRef = useRef<Song | null>(null);
   const repeatModeRef = useRef<RepeatMode>("off");
   const shuffleRef = useRef(false);
+
+  const updateCurrentSong = useCallback((song: Partial<Song>) => {
+    setCurrentSong(prev => prev ? { ...prev, ...song } : null);
+  }, []);
 
   useEffect(() => {
     queueRef.current = queue;
@@ -233,6 +239,7 @@ export const MusicPlayerProvider = ({ children }: { children: React.ReactNode })
         repeatMode,
         cycleRepeat,
         audioRef,
+        updateCurrentSong,
       }}
     >
       {children}

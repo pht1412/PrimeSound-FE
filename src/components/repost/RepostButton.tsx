@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// src/components/repost/RepostButton.tsx
+import React, { useState, useEffect } from 'react';
 import { RefreshCcw, Loader2 } from 'lucide-react';
 import { repostService } from '../../services/repostService';
 import { toast } from 'react-toastify';
@@ -6,44 +7,60 @@ import { toast } from 'react-toastify';
 interface RepostButtonProps {
   itemId: string;
   itemType: 'Song' | 'Playlist';
+  initialIsReposted: boolean;
+  onToggle?: (isReposted: boolean) => void;
 }
 
-const RepostButton: React.FC<RepostButtonProps> = ({ itemId, itemType }) => {
+const RepostButton: React.FC<RepostButtonProps> = ({ itemId, itemType, initialIsReposted, onToggle }) => {
+  const [isReposted, setIsReposted] = useState(initialIsReposted);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRepost = async (e: React.MouseEvent) => {
+  useEffect(() => {
+    setIsReposted(initialIsReposted);
+  }, [initialIsReposted]);
+
+  const handleToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsLoading(true);
+    const newState = !isReposted;
 
     try {
-      await repostService.createRepost({ itemId, itemType });
-      
-      toast.success("Đã đăng lại!");
-      
-    } catch (error: any) {
-      console.error('Failed to repost:', error);
-      
-      if (error?.status === 409 || error?.message?.includes('đã đăng lại')) {
-        toast.info("Bạn đã đăng lại rồi!");
+      if (newState) {
+        await repostService.createRepost({ itemId, itemType });
+        toast.success("Đã đăng lại!");
       } else {
-        toast.error("Có lỗi xảy ra! Vui lòng thử lại!");
+        await repostService.deleteRepost(itemId);
+        toast.success("Đã bỏ đăng lại!");
       }
+      setIsReposted(newState);
+      if (onToggle) {
+        onToggle(newState);
+      }
+    } catch (error: any) {
+      console.error(`Failed to ${newState ? 'repost' : 'un-repost'}:`, error);
+      toast.error("Có lỗi xảy ra! Vui lòng thử lại!");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <button 
-      onClick={handleRepost}
+    <button
+      onClick={handleToggle}
       disabled={isLoading}
       className="p-2 hover:bg-white/10 rounded-full transition group disabled:opacity-50"
-      title={`Đăng lại ${itemType == "Song" ? "bài hát" : "danh sách phát"}`}
+      title={isReposted ? `Bỏ đăng lại ${itemType === "Song" ? "bài hát" : "danh sách phát"}` : `Đăng lại ${itemType === "Song" ? "bài hát" : "danh sách phát"}`}
     >
       {isLoading ? (
-        <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+        <Loader2 className="w-5 h-5 animate-spin" />
       ) : (
-        <RefreshCcw className="w-5 h-5 text-gray-400 group-hover:text-[#3be477] transition-colors" />
+        <RefreshCcw
+          className={`w-5 h-5 transition-colors ${
+            isReposted
+              ? 'text-[#1ed760]'
+              : 'text-gray-400 group-hover:text-[#3be477]'
+          }`}
+        />
       )}
     </button>
   );
