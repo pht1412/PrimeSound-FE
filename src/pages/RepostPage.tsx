@@ -157,8 +157,6 @@ const RepostPage: React.FC = () => {
         <div className="flex items-end gap-6 mb-8">
           <div className="w-60 h-60 shadow-2xl shadow-black/50 shrink-0">
             <img src={heroCover} alt="Mix Cover" className="w-full h-full object-cover rounded-md" />
-
-            <RepostButton itemId='69cbb8a2232663b4b37fc2b9' itemType='Song' initialIsReposted={false}></RepostButton>
           </div>
           
           <div className="flex flex-col justify-end w-full pb-2">
