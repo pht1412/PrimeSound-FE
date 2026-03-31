@@ -51,4 +51,8 @@ export const songService = {
       import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
     return `${BACKEND_URL}/api/v1/songs/${id}/stream`;
   },
+  // Lấy danh sách bài hát công khai của một user bất kỳ
+  getSongsByUserId: async (userId: string) => {
+    return await api.get(`/songs/user/${userId}`);
+  },
 };

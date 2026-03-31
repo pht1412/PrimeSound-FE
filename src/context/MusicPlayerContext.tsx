@@ -145,6 +145,25 @@ export const MusicPlayerProvider = ({ children }: { children: React.ReactNode })
   playNextRef.current = playNext;
 
   const playSong = useCallback((song: Song, opts?: PlaySongOptions) => {
+    // ================= BẮT ĐẦU: CHỐT CHẶN BÀI HÁT TRÙNG LẶP =================
+    // Kiểm tra xem bài hát em vừa bấm có ID trùng với bài đang phát hay không
+    if (currentSongRef.current?.id === song.id) {
+      if (audioRef.current) {
+        if (audioRef.current.paused) {
+          // Nếu đang tạm dừng -> Phát tiếp tục
+          audioRef.current.play().catch(error => console.warn("Trình duyệt chặn:", error));
+          setIsPlaying(true);
+        } else {
+          // Nếu đang hát -> Tạm dừng
+          audioRef.current.pause();
+          setIsPlaying(false);
+        }
+      }
+      // QUAN TRỌNG NHẤT: Bắt buộc dùng 'return' để thoát hàm ngay tại đây!
+      // Không cho code chạy xuống dưới để tránh việc set lại 'currentSong' làm reset nhạc.
+      return; 
+    }
+    // ================= KẾT THÚC: CHỐT CHẶN =================
     if (opts?.queue && opts.queue.length > 0) {
       const q = [...opts.queue];
       const idx = q.findIndex((s) => s.id === song.id);

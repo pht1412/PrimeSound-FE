@@ -103,64 +103,64 @@ export const Home = () => {
 
     // Fetch trạng thái follow từ API nếu chưa có dữ liệu
     if (currentUser && followStatuses[uploaderId] === undefined) {
-       try {
-         const status: any = await followService.getFollowStatus(uploaderId);
-         setFollowStatuses(prev => ({ ...prev, [uploaderId]: status.isFollowing }));
-       } catch (err) {
-         console.error("Lỗi lấy trạng thái follow", err);
-       }
+      try {
+        const status: any = await followService.getFollowStatus(uploaderId);
+        setFollowStatuses(prev => ({ ...prev, [uploaderId]: status.isFollowing }));
+      } catch (err) {
+        console.error("Lỗi lấy trạng thái follow", err);
+      }
     }
   };
 
-// === LOGIC XỬ LÝ CLICK CHỮ FOLLOW / FOLLOWED (ĐÃ NÂNG CẤP PHÒNG THỦ) ===
+  // === LOGIC XỬ LÝ CLICK CHỮ FOLLOW / FOLLOWED (ĐÃ NÂNG CẤP PHÒNG THỦ) ===
   const handleToggleFollow = async (e: React.MouseEvent, uploaderId: string) => {
-     e.stopPropagation();
-     
-     // 1. Chốt chặn an toàn cho ID
-     if (!uploaderId || uploaderId === "undefined") {
-        console.error("❌ Lỗi: uploaderId không xác định (Có thể do thiếu populate ở backend)");
-        return;
-     }
+    e.stopPropagation();
 
-     if (!currentUser) {
-        toast.info("Vui lòng đăng nhập để theo dõi Nghệ sĩ!");
-        return;
-     }
-     
-     const isCurrentlyFollowing = followStatuses[uploaderId];
-     
-     try {
-        if (isCurrentlyFollowing) {
-           await followService.unfollowUser(uploaderId);
-           setFollowStatuses(prev => ({ ...prev, [uploaderId]: false }));
-           toast.success("Đã hủy theo dõi");
-        } else {
-           await followService.followUser(uploaderId);
-           setFollowStatuses(prev => ({ ...prev, [uploaderId]: true }));
-           toast.success("Đã theo dõi thành công!");
-        }
-     } catch (err: any) {
-        // ==================== CHIẾN THUẬT TỰ CHỮA LÀNH (SELF-HEALING) ====================
-        const errorMsg = err.response?.data?.message || err.message || "";
-        
-        // Kịch bản A: Front-end bảo chưa Follow, gửi lệnh Follow -> Back-end báo "Already following"
-        if (errorMsg.includes("already following") || errorMsg.includes("Đã theo dõi")) {
-           setFollowStatuses(prev => ({ ...prev, [uploaderId]: true })); // Ép UI sang trạng thái Followed
-           toast.info("Đã đồng bộ trạng thái: Bạn đang theo dõi người này.");
-        } 
-        // Kịch bản B: Front-end bảo đã Follow, gửi lệnh Unfollow -> Back-end báo "Not following"
-        else if (errorMsg.includes("not following") || errorMsg.includes("Chưa theo dõi")) {
-           setFollowStatuses(prev => ({ ...prev, [uploaderId]: false })); // Ép UI về trạng thái Follow
-           toast.info("Đã đồng bộ trạng thái: Bạn chưa theo dõi người này.");
-        }
-        // Các lỗi mạng hoặc server thật sự khác
-        else {
-           toast.error("Có lỗi xảy ra, vui lòng thử lại sau!");
-           console.error("❌ Follow Action Error:", errorMsg);
-        }
-     } finally {
-        setActiveDropdownId(null); // Luôn tắt popup sau khi thao tác xong
-     }
+    // 1. Chốt chặn an toàn cho ID
+    if (!uploaderId || uploaderId === "undefined") {
+      console.error("❌ Lỗi: uploaderId không xác định (Có thể do thiếu populate ở backend)");
+      return;
+    }
+
+    if (!currentUser) {
+      toast.info("Vui lòng đăng nhập để theo dõi Nghệ sĩ!");
+      return;
+    }
+
+    const isCurrentlyFollowing = followStatuses[uploaderId];
+
+    try {
+      if (isCurrentlyFollowing) {
+        await followService.unfollowUser(uploaderId);
+        setFollowStatuses(prev => ({ ...prev, [uploaderId]: false }));
+        toast.success("Đã hủy theo dõi");
+      } else {
+        await followService.followUser(uploaderId);
+        setFollowStatuses(prev => ({ ...prev, [uploaderId]: true }));
+        toast.success("Đã theo dõi thành công!");
+      }
+    } catch (err: any) {
+      // ==================== CHIẾN THUẬT TỰ CHỮA LÀNH (SELF-HEALING) ====================
+      const errorMsg = err.response?.data?.message || err.message || "";
+
+      // Kịch bản A: Front-end bảo chưa Follow, gửi lệnh Follow -> Back-end báo "Already following"
+      if (errorMsg.includes("already following") || errorMsg.includes("Đã theo dõi")) {
+        setFollowStatuses(prev => ({ ...prev, [uploaderId]: true })); // Ép UI sang trạng thái Followed
+        toast.info("Đã đồng bộ trạng thái: Bạn đang theo dõi người này.");
+      }
+      // Kịch bản B: Front-end bảo đã Follow, gửi lệnh Unfollow -> Back-end báo "Not following"
+      else if (errorMsg.includes("not following") || errorMsg.includes("Chưa theo dõi")) {
+        setFollowStatuses(prev => ({ ...prev, [uploaderId]: false })); // Ép UI về trạng thái Follow
+        toast.info("Đã đồng bộ trạng thái: Bạn chưa theo dõi người này.");
+      }
+      // Các lỗi mạng hoặc server thật sự khác
+      else {
+        toast.error("Có lỗi xảy ra, vui lòng thử lại sau!");
+        console.error("❌ Follow Action Error:", errorMsg);
+      }
+    } finally {
+      setActiveDropdownId(null); // Luôn tắt popup sau khi thao tác xong
+    }
   };
 
   if (loading) {
@@ -170,6 +170,14 @@ export const Home = () => {
       </div>
     );
   }
+  // ================= BẮT ĐẦU THÊM MỚI =================
+  // Lọc ra danh sách các nghệ sĩ duy nhất (không bị trùng lặp uploaderId)
+  // Chỉ dùng cho cột Popular Artists để tránh nhân bản clone
+  const uniquePopularArtists = topArtists.filter(
+    (song, index, self) =>
+      index === self.findIndex((s) => s.uploaderId === song.uploaderId)
+  );
+  // ================= KẾT THÚC THÊM MỚI =================
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-8 animate-fade-in pb-20">
@@ -241,8 +249,12 @@ export const Home = () => {
       <div className="hidden xl:block">
         {currentSong && showComments ? (
           <div className="sticky top-0 flex flex-col gap-6">
-            <SongCommentsPanel song={currentSong} onClose={() => setShowComments(false)} />
-          </div>
+            <SongCommentsPanel
+              song={currentSong}
+              onClose={() => setShowComments(false)}
+              currentUser={currentUser}
+            />          
+            </div>
         ) : (
           <div className="bg-[#1a1a1a] rounded-3xl p-6 flex flex-col sticky top-0 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
@@ -262,7 +274,7 @@ export const Home = () => {
             </div>
 
             <div className="flex flex-col gap-4">
-              {topArtists.slice(0, 5).map((song, index) => (
+              {uniquePopularArtists.slice(0, 5).map((song, index) => (
                 <div
                   key={`artist-${index}`}
                   onClick={() => song.uploaderId && navigate(`/home/profile/${song.uploaderId}`)}
@@ -279,7 +291,7 @@ export const Home = () => {
                     <h4 className="text-white font-bold text-sm truncate group-hover:text-[#1ed760] transition">{song.artist}</h4>
                     <p className="text-[#a7a7a7] text-xs font-medium">Artist</p>
                   </div>
-                  
+
                   {/* === NÚT 3 CHẤM BẬT POPUP FOLLOW === */}
                   <div className="relative">
                     <button
@@ -311,7 +323,7 @@ export const Home = () => {
               ))}
               {topArtists.length === 0 && <p className="text-gray-500 text-sm">Chưa có dữ liệu.</p>}
             </div>
-            
+
             <button className="w-full mt-6 py-3 border border-[#4d4d4d] rounded-full text-sm font-bold text-white tracking-widest uppercase hover:border-white transition">
               View All
             </button>
