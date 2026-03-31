@@ -20,6 +20,7 @@ export default function UserRoutes() {
         <Route path="/home" element={<Home />} />
         <Route path="/home/profile" element={<ProfilePage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/:userId" element={<ProfilePage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/favorites" element={<FavoriteSongsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />

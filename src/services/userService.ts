@@ -18,5 +18,11 @@ export const userService = {
   // Đổi mật khẩu
   changePassword: async (data: any) => {
     return await api.patch('/users/me/password', data);
+  },
+
+  // BỔ SUNG HÀM NÀY
+  getUserById: async (id: string) => {
+    const res = await api.get(`/users/${id}`);
+    return res.data;
   }
 };

@@ -10,10 +10,9 @@ const labelClasses = "block text-sm font-medium text-[#b3b3b3] mb-2.5";
 export const UploadPage = () => {
   const navigate = useNavigate();
 
-  // 1. State quản lý inputs văn bản
+  // 1. State quản lý inputs văn bản (Đã xóa trường artist)
   const [formData, setFormData] = useState({
     title: '',
-    artist: '',
     genre: '',
   });
 
@@ -45,21 +44,19 @@ export const UploadPage = () => {
     setLoading(true);
     setMessage(null);
 
-    // Validate cơ bản
-    if (!formData.title || !formData.artist || !audioFile || !coverFile) {
-      setMessage({ type: 'error', text: 'Vui lòng điền tên bài, nghệ sĩ, file nhạc và ảnh bìa.' });
+    // Validate cơ bản (Chỉ check title, nhạc và ảnh bìa)
+    if (!formData.title || !audioFile || !coverFile) {
+      setMessage({ type: 'error', text: 'Vui lòng điền tên bài, file nhạc và ảnh bìa.' });
       setLoading(false);
       return;
     }
 
-    // TẠO FORMDATA (Keypoint để upload file)
-    // Tên key (audio, cover, title...) phải khớp 100% với backend controllers
+    // TẠO FORMDATA ĐỂ GỬI LÊN BACKEND
     const dataToSubmit = new FormData();
     dataToSubmit.append('title', formData.title);
-    dataToSubmit.append('artist', formData.artist);
     dataToSubmit.append('genre', formData.genre);
-    dataToSubmit.append('audio', audioFile); // 'audio' khớp backend
-    dataToSubmit.append('cover', coverFile); // 'cover' khớp backend
+    dataToSubmit.append('audio', audioFile); 
+    dataToSubmit.append('cover', coverFile); 
 
     try {
       await songService.uploadSong(dataToSubmit);      
@@ -98,20 +95,13 @@ export const UploadPage = () => {
       {/* === FORM CONTAINER === */}
       <form onSubmit={handleSubmit} className="w-full max-w-[800px] mx-auto bg-[#181818] rounded-2xl p-10 shadow-2xl border border-[#282828]">
         
-        {/* VStack cho các inputs */}
         <div className="flex flex-col gap-8">
           
-          {/* Tên bài hát */}
-          <div>
-            <label htmlFor="title" className={labelClasses}>Song Title <span className="text-red-500">*</span></label>
-            <input type="text" id="title" name="title" value={formData.title} onChange={handleInputChange} placeholder="Ex: Cơn mưa ngang qua" className={inputClasses} required />
-          </div>
-
-          {/* Cụm 2 cột (Nghệ sĩ & Thể loại) */}
+          {/* Cụm 2 cột: Tên bài hát & Thể loại */}
           <div className="grid grid-cols-2 gap-8">
             <div>
-              <label htmlFor="artist" className={labelClasses}>Artist / Singer <span className="text-red-500">*</span></label>
-              <input type="text" id="artist" name="artist" value={formData.artist} onChange={handleInputChange} placeholder="Ex: Sơn Tùng M-TP" className={inputClasses} required />
+              <label htmlFor="title" className={labelClasses}>Song Title <span className="text-red-500">*</span></label>
+              <input type="text" id="title" name="title" value={formData.title} onChange={handleInputChange} placeholder="Ex: Cơn mưa ngang qua" className={inputClasses} required />
             </div>
             <div>
               <label htmlFor="genre" className={labelClasses}>Genre (Thể loại)</label>

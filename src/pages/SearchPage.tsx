@@ -26,7 +26,7 @@ export const SearchPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [songs, setSongs] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
-  
+
   // State lưu trữ Lịch sử tìm kiếm
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
@@ -45,13 +45,13 @@ export const SearchPage = () => {
     if (!keyword.trim()) return;
 
     const savedRecents = JSON.parse(localStorage.getItem('prime_recent_searches') || '[]');
-    
+
     // Xóa từ khóa cũ nếu bị trùng (để đẩy nó lên đầu danh sách)
     let updatedRecents = savedRecents.filter((item: string) => item.toLowerCase() !== keyword.toLowerCase());
-    
+
     // Thêm từ khóa mới lên đầu mảng
     updatedRecents.unshift(keyword.trim());
-    
+
     // Cắt bớt nếu vượt quá giới hạn
     if (updatedRecents.length > MAX_RECENTS) {
       updatedRecents.pop();
@@ -85,11 +85,11 @@ export const SearchPage = () => {
         setArtists([]);
         return;
       }
-      
+
       try {
         setIsLoading(true);
         const response: any = await searchService.searchAll(keyword);
-        
+
         if (response.success) {
           setSongs(response.data.songs || []);
           setArtists(response.data.artists || []);
@@ -119,19 +119,19 @@ export const SearchPage = () => {
     if (!totalSeconds) return "0:00";
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = Math.floor(totalSeconds % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`; 
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   return (
     <div className="flex-1 bg-[#121212] min-h-screen text-white overflow-y-auto custom-scrollbar p-8 pb-28 relative">
-      
+
       {/* TRẠNG THÁI 1: KHÔNG CÓ TỪ KHÓA -> HIỂN THỊ LỊCH SỬ TÌM KIẾM */}
       {!keyword ? (
         <div className="mt-4">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Recent searches</h2>
             {recentSearches.length > 0 && (
-              <button 
+              <button
                 onClick={handleClearAllRecents}
                 className="text-sm font-semibold text-[#a7a7a7] hover:text-white transition"
               >
@@ -145,7 +145,7 @@ export const SearchPage = () => {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {recentSearches.map((item, index) => (
-                <div 
+                <div
                   key={index}
                   onClick={() => navigate(`/home/search?q=${encodeURIComponent(item)}`)}
                   className="bg-[#181818] p-4 rounded-md flex items-center justify-between hover:bg-[#282828] transition cursor-pointer group"
@@ -154,9 +154,9 @@ export const SearchPage = () => {
                     <Clock className="w-5 h-5 text-[#a7a7a7] shrink-0" />
                     <span className="font-semibold text-white truncate">{item}</span>
                   </div>
-                  
+
                   {/* Nút xóa từ khóa (Chỉ hiện khi rê chuột) */}
-                  <button 
+                  <button
                     onClick={(e) => handleRemoveRecent(e, item)}
                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-black/20 rounded-full transition"
                   >
@@ -182,7 +182,7 @@ export const SearchPage = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-10">
-              
+
               {/* NẾU KHÔNG TÌM THẤY GÌ */}
               {songs.length === 0 && artists.length === 0 && (
                 <div className="text-center py-20 text-[#a7a7a7]">
@@ -199,11 +199,15 @@ export const SearchPage = () => {
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
                     {artists.map((artist) => (
-                      <div key={artist._id} className="bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition cursor-pointer group">
+                      <div
+                        key={artist._id}
+                        onClick={() => navigate(`/home/profile/${artist._id}`)} // BƯỚC QUAN TRỌNG NHẤT Ở ĐÂY
+                        className="bg-[#181818] p-4 rounded-md hover:bg-[#282828] transition cursor-pointer group"
+                      >
                         <div className="relative mb-4 pb-[100%] shadow-[0_8px_24px_rgba(0,0,0,0.5)] rounded-full overflow-hidden">
-                          <img 
-                            src={getImageUrl(artist.avatarUrl)} 
-                            alt={artist.name} 
+                          <img
+                            src={getImageUrl(artist.avatarUrl)}
+                            alt={artist.name}
                             className="absolute top-0 left-0 w-full h-full object-cover"
                           />
                         </div>
@@ -223,23 +227,23 @@ export const SearchPage = () => {
                   </h2>
                   <div className="flex flex-col">
                     {songs.map((song) => (
-                      <div 
-                        key={song._id} 
+                      <div
+                        key={song._id}
                         onClick={() => handlePlaySong(song)}
                         className="flex items-center justify-between p-3 hover:bg-white/10 rounded-md transition group cursor-pointer"
                       >
                         <div className="flex items-center gap-4 flex-1 min-w-0">
                           <div className="relative w-12 h-12 shrink-0">
-                            <img 
-                              src={getImageUrl(song.coverUrl)} 
-                              alt={song.title} 
+                            <img
+                              src={getImageUrl(song.coverUrl)}
+                              alt={song.title}
                               className="w-full h-full object-cover rounded shadow"
                             />
                             <div className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center rounded">
-                               <Play className="w-5 h-5 fill-white text-white" />
+                              <Play className="w-5 h-5 fill-white text-white" />
                             </div>
                           </div>
-                          
+
                           <div className="flex flex-col truncate pr-4">
                             <span className="font-semibold text-base text-white truncate group-hover:text-[#1ed760] transition-colors">
                               {song.title}
@@ -255,8 +259,8 @@ export const SearchPage = () => {
                           <div className="text-sm text-[#a7a7a7] w-12 text-right">
                             {formatTime(song.duration)}
                           </div>
-                          
-                          <button 
+
+                          <button
                             onClick={(e) => {
                               e.stopPropagation(); // Ngăn phát nhạc khi ấn nút 3 chấm
                               setSelectedSongId(song._id);
@@ -268,7 +272,7 @@ export const SearchPage = () => {
                             <MoreHorizontal className="w-5 h-5 text-white" />
                           </button>
                         </div>
-                        
+
                       </div>
                     ))}
                   </div>
@@ -281,13 +285,13 @@ export const SearchPage = () => {
       )}
 
       {/* CHÈN MODAL VÀO CUỐI TRANG */}
-      <AddToPlaylistModal 
-        isOpen={isAddModalOpen} 
+      <AddToPlaylistModal
+        isOpen={isAddModalOpen}
         onClose={() => {
           setIsAddModalOpen(false);
           setSelectedSongId(null);
-        }} 
-        songId={selectedSongId} 
+        }}
+        songId={selectedSongId}
       />
 
     </div>

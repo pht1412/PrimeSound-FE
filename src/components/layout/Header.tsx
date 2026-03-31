@@ -126,7 +126,7 @@ export const Header = () => {
 
         {/* User Info (Đã map dữ liệu API và Gắn Link chuyển trang) */}
         <Link
-          to="/home/account"
+          to="/home/profile"
           className="flex items-center gap-3 cursor-pointer hover:bg-[#202020] px-3 py-1.5 rounded-full transition"
         >
           <img

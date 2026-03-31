@@ -1,30 +1,34 @@
-import api from "../api/api";
+// src/services/followService.ts
+import api from '../api/api';
 
-export type FollowListUser = {
-  _id: string;
-  name: string;
-  email?: string;
-  avatar?: string;
-};
-
-export type FollowersResponse = {
-  count: number;
-  page: number;
-  totalPages: number;
-  followers: FollowListUser[];
-};
-
-export type FollowingResponse = {
-  count: number;
-  page: number;
-  totalPages: number;
-  following: FollowListUser[];
-};
+const BASE_URL = '/follow';
 
 export const followService = {
-  getFollowers: (userId: string, page = 1, limit = 100) =>
-    api.get(`/follow/${userId}/followers`, { page, limit }) as Promise<FollowersResponse>,
+  // Bấm follow
+  followUser: async (userId: string) => {
+    return await api.post(`${BASE_URL}/${userId}`);
+  },
 
-  getFollowing: (userId: string, page = 1, limit = 100) =>
-    api.get(`/follow/${userId}/following`, { page, limit }) as Promise<FollowingResponse>,
+  // Hủy follow
+  unfollowUser: async (userId: string) => {
+    return await api.delete(`${BASE_URL}/${userId}`);
+  },
+
+  // Lấy danh sách người đang theo dõi mình
+  getFollowers: async (userId: string, page = 1, limit = 20) => {
+    const res: any = await api.get(`${BASE_URL}/${userId}/followers?page=${page}&limit=${limit}`);
+    return res; // Trả về { count, page, followers } theo thiết kế của Backend
+  },
+
+  // Lấy danh sách người mình đang theo dõi
+  getFollowing: async (userId: string, page = 1, limit = 20) => {
+    const res: any = await api.get(`${BASE_URL}/${userId}/following?page=${page}&limit=${limit}`);
+    return res;
+  },
+
+  // Kiểm tra xem mình đã follow user này chưa
+  getFollowStatus: async (userId: string) => {
+    const res: any = await api.get(`${BASE_URL}/${userId}/status`);
+    return res; // Trả về { isFollowing: true/false }
+  }
 };
