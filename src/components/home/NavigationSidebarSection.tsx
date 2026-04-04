@@ -1,5 +1,5 @@
 // src/components/home/NavigationSidebarSection.tsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { RefreshCcw, X, Loader2, Music } from "lucide-react"; // Import thêm icon cho Modal
 import { usePlaylists } from "../../context/PlaylistContext"; // Import Context

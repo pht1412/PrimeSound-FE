@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+*.md
+.git
+.github
+.gitignore
+# Không bỏ qua các file cấu hình cần thiết để build
+# tsconfig*.json
+# vite.config.ts
+# postcss.config.js
+# tailwind.config.js

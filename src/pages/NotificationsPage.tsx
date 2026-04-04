@@ -1,6 +1,6 @@
 // src/pages/NotificationsPage.tsx
-import React, { useState, useEffect, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useState, useEffect, useCallback, type MouseEvent } from 'react';
+import { io } from 'socket.io-client';
 import { notificationService } from '../services/notificationService';
 import { userService } from '../services/userService';
 import { followService } from '../services/followService';
@@ -13,7 +13,6 @@ export const NotificationsPage = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentUser, setCurrentUser] = useState<any>(null);
-    const [socket, setSocket] = useState<Socket | null>(null);
     const [followedBackIds, setFollowedBackIds] = useState<Set<string>>(new Set());
 
     const getAvatarUrl = (url: string) => {
@@ -69,7 +68,6 @@ export const NotificationsPage = () => {
 
         // Khởi tạo kết nối Socket
         const newSocket = io(BACKEND_URL);
-        setSocket(newSocket);
 
         newSocket.on('connect', () => {
             console.log('Đã kết nối Socket.io từ Front-end!');
@@ -126,7 +124,7 @@ export const NotificationsPage = () => {
     };
 
     // HÀM XỬ LÝ KHI BẤM NÚT FOLLOW BACK
-    const handleFollowBack = async (e: React.MouseEvent, targetUserId: string) => {
+    const handleFollowBack = async (e: MouseEvent, targetUserId: string) => {
         // e.stopPropagation() cực kỳ quan trọng ở đây! 
         // Nó ngăn không cho sự kiện click lan ra thẻ <div> cha (gây ra việc đánh dấu đã đọc thông báo)
         e.stopPropagation();
