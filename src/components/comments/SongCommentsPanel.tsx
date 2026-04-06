@@ -7,7 +7,8 @@ const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
 type SongCommentsPanelProps = {
   song: Song;
-  onClose?: () => void; // Props bắt sự kiện Đóng
+  onClose?: () => void; 
+  currentUser?: any; // 👇 1. NHẬN PROPS TỪ HOMEPAGE 👇
 };
 
 const formatTimeAgo = (dateString: string) => {
@@ -28,7 +29,6 @@ const getAvatarLabel = (name: string) => {
   return name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() || "").join("");
 };
 
-// Hàm chuẩn hóa đường dẫn Avatar thật
 const getImageUrl = (url?: string) => {
   if (!url) return null;
   if (url.startsWith('http')) return url;
@@ -45,7 +45,8 @@ const formatExactTime = (dateString: string) => {
   }).format(date);
 };
 
-export const SongCommentsPanel = ({ song, onClose }: SongCommentsPanelProps) => {
+// 👇 2. DESTRUCTURE THÊM BẾN currentUser 👇
+export const SongCommentsPanel = ({ song, onClose, currentUser }: SongCommentsPanelProps) => {
   const [comments, setComments] = useState<SongComment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
@@ -155,7 +156,6 @@ export const SongCommentsPanel = ({ song, onClose }: SongCommentsPanelProps) => 
           <span className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-[#a7a7a7]">
             {comments.length} bình luận
           </span>
-          {/* NÚT TẮT COMMENT KHIẾN CHO BACK VỀ POPULAR ARTISTS */}
           {onClose && (
             <button 
               onClick={onClose} 
@@ -214,13 +214,21 @@ export const SongCommentsPanel = ({ song, onClose }: SongCommentsPanelProps) => 
 
         {!loading &&
           visibleComments.map((comment) => {
-            const avatarUrl = getImageUrl(comment.user.avatar); // Xử lý Link Avatar
+            const avatarUrl = getImageUrl(comment.user?.avatar); 
+
+            // 👇 3. LOGIC CHỦ CHỐT TẠI ĐÂY 👇
+            // Tự động kiểm tra ID của người comment với ID của Current User đang đăng nhập
+            const commentUserId = (comment.user as any )?._id || comment.user?.id;
+            const myUserId = currentUser?._id || currentUser?.id;
+            const isMyComment = Boolean(myUserId && commentUserId && myUserId === commentUserId);
+            
+            // Nếu API cho phép xóa (canDelete) HOẶC tự nhận diện được là của mình (isMyComment)
+            const showDeleteBtn = comment.canDelete || isMyComment;
 
             return (
               <div key={comment.id} className="rounded-2xl border border-white/5 bg-[#202020] p-3.5">
                 <div className="flex items-start gap-3">
                   
-                  {/* HIỂN THỊ ẢNH AVATAR THẬT (Nếu có), ngược lại hiện chữ */}
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1ed760] overflow-hidden text-xs font-bold text-black">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt={comment.user.name} className="h-full w-full object-cover" />
@@ -250,7 +258,9 @@ export const SongCommentsPanel = ({ song, onClose }: SongCommentsPanelProps) => 
                         <Heart size={14} className={comment.isLiked ? "fill-current" : ""} />
                         {comment.likesCount}
                       </button>
-                      {comment.canDelete && (
+                      
+                      {/* 👇 ĐÃ GẮN CỜ showDeleteBtn Ở ĐÂY 👇 */}
+                      {showDeleteBtn && (
                         <button
                           onClick={() => handleDeleteComment(comment.id)}
                           title="Xóa bình luận của mình"
