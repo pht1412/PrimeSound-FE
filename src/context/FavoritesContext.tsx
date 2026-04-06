@@ -1,7 +1,11 @@
 // src/context/FavoritesContext.tsx
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { favoriteService } from '../services/favoriteService';
+<<<<<<< HEAD
 import { useAuth } from './AuthContext';
+=======
+import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
+>>>>>>> origin/feature/khogabamia
 
 interface FavoritesContextType {
   likedSongIds: Set<string>;
@@ -82,6 +86,7 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
   }, [likedSongIds]);
 
   useEffect(() => {
+<<<<<<< HEAD
     // ✅ Gọi initializeLikedSongs khi user vừa đăng nhập
     if (isAuthenticated) {
       console.log('📝 FavoritesContext: useEffect - isAuthenticated changed to true, initializing...');
@@ -92,6 +97,20 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
       setLikedSongIds(new Set());
     }
   }, [isAuthenticated, initializeLikedSongs]);
+=======
+    const syncFromToken = () => {
+      const token = localStorage.getItem('accessToken');
+      if (token) void initializeLikedSongs();
+      else {
+        setLikedSongIds(new Set());
+        setIsLoading(false);
+      }
+    };
+    syncFromToken();
+    window.addEventListener(AUTH_CHANGED_EVENT, syncFromToken);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, syncFromToken);
+  }, [initializeLikedSongs]);
+>>>>>>> origin/feature/khogabamia
 
   return (
     <FavoritesContext.Provider value={{ likedSongIds, isLoading, toggleLike, isLiked, initializeLikedSongs, getLikedCount }}>

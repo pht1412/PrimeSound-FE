@@ -1,12 +1,21 @@
 // src/components/home/NavigationSidebarSection.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { RefreshCcw, X, Loader2, Music } from "lucide-react"; // Import thêm icon cho Modal
+import { RefreshCcw, X, Loader2, Music, LogOut, LogIn } from "lucide-react"; // Import thêm icon cho Modal
 import { usePlaylists } from "../../context/PlaylistContext"; // Import Context
+import { AUTH_CHANGED_EVENT } from "../../utils/authEvents";
 
 export const NavigationSidebarSection = () => {
   // 1. Kéo dữ liệu và hàm tạo từ Context
   const { playlists, createNewPlaylist } = usePlaylists();
+
+  const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem("accessToken")));
+
+  useEffect(() => {
+    const sync = () => setIsLoggedIn(Boolean(localStorage.getItem("accessToken")));
+    window.addEventListener(AUTH_CHANGED_EVENT, sync);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, sync);
+  }, []);
 
   // 2. State quản lý Modal tạo Playlist
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,6 +38,13 @@ export const NavigationSidebarSection = () => {
       setNewPlaylistName(''); // Reset input
     }
     setIsCreating(false);
+  };
+
+  // Hàm xử lý logout
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('user');
+    window.location.href = '/auth';
   };
 
   return (
@@ -59,28 +75,33 @@ export const NavigationSidebarSection = () => {
                 Discover
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/home/albums" className={({ isActive }) => (isActive ? activeClass : inactiveClass)}>
-                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
-                Albums
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/home/artists" className={({ isActive }) => (isActive ? activeClass : inactiveClass)}>
-                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                Artists
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/home/reposts" className={({ isActive }) => (isActive ? activeClass : inactiveClass)}>
-                <RefreshCcw className="w-5 h-5" />
-                Reposts
-              </NavLink>
-            </li>
+            {isLoggedIn && (
+              <>
+                <li>
+                  <NavLink to="/home/albums" className={({ isActive }) => (isActive ? activeClass : inactiveClass)}>
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                    Albums
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/home/artists" className={({ isActive }) => (isActive ? activeClass : inactiveClass)}>
+                    <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Artists
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/home/reposts" className={({ isActive }) => (isActive ? activeClass : inactiveClass)}>
+                    <RefreshCcw className="w-5 h-5" />
+                    Reposts
+                  </NavLink>
+                </li>
+              </>
+            )}
           </ul>
         </div>
 
-        {/* LIBRARY */}
+        {/* LIBRARY — chỉ khi đã đăng nhập */}
+        {isLoggedIn && (
         <div>
           <h3 className="text-xs font-medium text-[#379546] mb-3 px-4 uppercase tracking-wider">Library</h3>
           <ul className="space-y-1">
@@ -98,8 +119,10 @@ export const NavigationSidebarSection = () => {
             </li>
           </ul>
         </div>
+        )}
 
-        {/* PLAYLIST AND FAVORITE */}
+        {/* PLAYLIST AND FAVORITE — chỉ khi đã đăng nhập */}
+        {isLoggedIn && (
         <div>
           <h3 className="text-xs font-medium text-[#379546] mb-3 px-4 uppercase tracking-wider">Playlist and favorite</h3>
           <ul className="space-y-1">
@@ -141,6 +164,29 @@ export const NavigationSidebarSection = () => {
             </li>
           </ul>
         </div>
+        )}
+      </div>
+
+      {/* Đăng xuất / Đăng nhập */}
+      <div className="px-4 border-t border-[#282828] pt-4">
+        {isLoggedIn ? (
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-4 py-3 text-sm font-semibold text-[#e22134] hover:text-white hover:bg-[#e22134]/10 rounded-lg transition"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Log out</span>
+          </button>
+        ) : (
+          <NavLink
+            to="/auth"
+            className="w-full flex items-center gap-4 px-4 py-3 text-sm font-semibold text-[#1ed760] hover:text-white hover:bg-[#1ed760]/15 rounded-lg transition"
+          >
+            <LogIn className="w-5 h-5" />
+            <span>Log in</span>
+          </NavLink>
+        )}
       </div>
 
       {/* ================= MODAL TẠO PLAYLIST ================= */}
