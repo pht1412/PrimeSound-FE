@@ -1,7 +1,6 @@
 // src/pages/AuthPage.tsx
 import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom"; // Import hook chuyển trang
-import { notifyAuthChanged } from "../utils/authEvents";
 import { toast } from "react-toastify"; // Import hàm gọi popup
 
 import InputField from "../components/login/InputField";
@@ -21,6 +20,7 @@ export default function AuthPage() {
     if (searchParams.get("signup") === "1") setIsLogin(false);
   }, [searchParams]);
 
+  // === LOGIN ===
   const [formData, setFormData] = useState({
     name: "",
     number: "",
@@ -63,16 +63,21 @@ const handleSubmit = async (e: FormEvent) => {
         const response = await authService.login({
           email: formData.email,
           password: formData.password,
-        }) as { token: string };
+        });
+        
+        console.log('🔍 Debug login response:', response);
         
         // 1. Lưu token thật vào F12 -> Application -> Local Storage
-        localStorage.setItem("accessToken", response.token); 
-        notifyAuthChanged();
+        localStorage.setItem("accessToken", response.accessToken); 
+        localStorage.setItem("refreshToken", response.refreshToken);
         
-        // 2. Hiện popup thành công
+        // 2. Cập nhật AuthContext với token và user data
+        login(response.accessToken, response.user);
+        
+        // 3. Hiện popup thành công
         toast.success("Đăng nhập thành công! Đang chuyển hướng...");
         
-        // 3. Chuyển hướng sẽ được xử lý bởi useEffect ở trên
+        // 4. Chuyển hướng sẽ được xử lý bởi useEffect ở trên
         // Nó sẽ check role và redirect tới /admin hoặc /home 
         
       } else {
