@@ -2,13 +2,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { userService } from '../../services/userService';
-<<<<<<< HEAD
+import { AUTH_CHANGED_EVENT } from '../../utils/authEvents';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
-=======
-import { useNavigate } from 'react-router-dom'; // Thêm useNavigate
-import { AUTH_CHANGED_EVENT } from '../../utils/authEvents';
->>>>>>> origin/feature/khogabamia
 
 const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
@@ -144,43 +140,6 @@ export const Header = () => {
               </svg>
             </button>
 
-<<<<<<< HEAD
-        {/* User Profile Menu with Logout */}
-        <div className="relative">
-          <button
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-3 cursor-pointer hover:bg-[#202020] px-3 py-1.5 rounded-full transition"
-          >
-            <img
-              src={getAvatarUrl(user?.avatar)}
-              alt="User Avatar"
-              className="w-9 h-9 rounded-full object-cover bg-white"
-            />
-            <span className="text-white text-sm font-medium">
-              {user ? user.name : "Guest"}
-            </span>
-          </button>
-
-          {/* Dropdown Menu */}
-          {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-[#282828] rounded-lg shadow-xl py-2 z-50">
-              <Link
-                to="/home/profile"
-                onClick={() => setShowProfileMenu(false)}
-                className="block px-4 py-2 text-white hover:bg-[#333333] text-sm transition"
-              >
-                👤 Hồ sơ của tôi
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-[#ff6b6b] hover:bg-[#333333] text-sm transition"
-              >
-                🚪 Đăng xuất
-              </button>
-            </div>
-          )}
-        </div>
-=======
             <Link
               to="/home/profile"
               className="flex items-center gap-3 cursor-pointer hover:bg-[#202020] px-3 py-1.5 rounded-full transition"
@@ -211,7 +170,6 @@ export const Header = () => {
             </Link>
           </div>
         )}
->>>>>>> origin/feature/khogabamia
       </div>
     </header>
   );
