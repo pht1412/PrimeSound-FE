@@ -1,17 +1,23 @@
 // src/pages/AuthPage.tsx
-import { useState, type ChangeEvent, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom"; // Import hook chuyển trang
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom"; // Import hook chuyển trang
+import { notifyAuthChanged } from "../utils/authEvents";
 import { toast } from "react-toastify"; // Import hàm gọi popup
 
 import InputField from "../components/login/InputField";
 import { authService } from "../services/authService";
 
 export default function AuthPage() {
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>("");
 
   const navigate = useNavigate(); // Khởi tạo hàm chuyển trang
+
+  useEffect(() => {
+    if (searchParams.get("signup") === "1") setIsLogin(false);
+  }, [searchParams]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -40,6 +46,7 @@ const handleSubmit = async (e: FormEvent) => {
         
         // 1. Lưu token thật vào F12 -> Application -> Local Storage
         localStorage.setItem("accessToken", response.token); 
+        notifyAuthChanged();
         
         // 2. Hiện popup thành công
         toast.success("Đăng nhập thành công! Đang chuyển hướng...");

@@ -1,6 +1,7 @@
 // src/context/FavoritesContext.tsx
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { favoriteService } from '../services/favoriteService';
+import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 
 interface FavoritesContextType {
   likedSongIds: Set<string>;
@@ -72,7 +73,17 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
   }, [likedSongIds]);
 
   useEffect(() => {
-    initializeLikedSongs();
+    const syncFromToken = () => {
+      const token = localStorage.getItem('accessToken');
+      if (token) void initializeLikedSongs();
+      else {
+        setLikedSongIds(new Set());
+        setIsLoading(false);
+      }
+    };
+    syncFromToken();
+    window.addEventListener(AUTH_CHANGED_EVENT, syncFromToken);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, syncFromToken);
   }, [initializeLikedSongs]);
 
   return (
