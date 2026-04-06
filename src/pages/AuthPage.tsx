@@ -1,10 +1,11 @@
 // src/pages/AuthPage.tsx
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Import hook chuyển trang
 import { toast } from "react-toastify"; // Import hàm gọi popup
 
 import InputField from "../components/login/InputField";
 import { authService } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState<boolean>(true);
@@ -12,6 +13,7 @@ export default function AuthPage() {
   const [errorMsg, setErrorMsg] = useState<string>("");
 
   const navigate = useNavigate(); // Khởi tạo hàm chuyển trang
+  const { login, isAuthenticated, isAdmin, isLoading: authLoading } = useAuth(); // Lấy auth context
 
   const [formData, setFormData] = useState({
     name: "",
@@ -19,6 +21,25 @@ export default function AuthPage() {
     email: "",
     password: "",
   });
+
+  // Nếu đã đăng nhập rồi, redirect dựa trên role
+  useEffect(() => {
+    console.log('📍 AuthPage: useEffect triggered - isAuthenticated:', isAuthenticated, ', isAdmin:', isAdmin, ', isLoading:', authLoading);
+    
+    if (authLoading) {
+      console.log('⏳ AuthPage: Still loading auth, skipping redirect');
+      return; // Không redirect khi còn loading
+    }
+    
+    if (isAuthenticated) {
+      console.log('🚀 AuthPage: Redirecting to', isAdmin ? '/admin' : '/home');
+      if (isAdmin) {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/home", { replace: true });
+      }
+    }
+  }, [isAuthenticated, isAdmin, navigate, authLoading]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -38,14 +59,14 @@ const handleSubmit = async (e: FormEvent) => {
           password: formData.password,
         }) as { token: string };
         
-        // 1. Lưu token thật vào F12 -> Application -> Local Storage
-        localStorage.setItem("accessToken", response.token); 
+        // 1. Gọi login từ AuthContext để lưu token và user data
+        login(response.token, { email: formData.email });
         
         // 2. Hiện popup thành công
         toast.success("Đăng nhập thành công! Đang chuyển hướng...");
         
-        // 3. Bay thẳng vào trang Home
-        navigate("/home"); 
+        // 3. Chuyển hướng sẽ được xử lý bởi useEffect ở trên
+        // Nó sẽ check role và redirect tới /admin hoặc /home 
         
       } else {
         // === LUỒNG ĐĂNG KÝ (GỌI API THẬT) ===
