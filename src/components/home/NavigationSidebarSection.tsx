@@ -1,7 +1,7 @@
 // src/components/home/NavigationSidebarSection.tsx
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { RefreshCcw, X, Loader2, Music, LogOut, LogIn } from "lucide-react"; // Import thêm icon cho Modal
+import { RefreshCcw, X, Loader2, Music, LogOut, LogIn, Clock } from "lucide-react"; // Import thêm icon cho Modal
 import { usePlaylists } from "../../context/PlaylistContext"; // Import Context
 import { AUTH_CHANGED_EVENT } from "../../utils/authEvents";
 
@@ -105,6 +105,12 @@ export const NavigationSidebarSection = () => {
         <div>
           <h3 className="text-xs font-medium text-[#379546] mb-3 px-4 uppercase tracking-wider">Library</h3>
           <ul className="space-y-1">
+            <li>
+              <NavLink to="/home/history" className={({ isActive }) => (isActive ? activeClass : inactiveClass)}>
+                <Clock className="w-5 h-5" />
+                Music History
+              </NavLink>
+            </li>
             <li>
               <NavLink to="/home/library/recent" className={({ isActive }) => (isActive ? activeClass : inactiveClass)}>
                 <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>

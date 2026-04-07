@@ -11,6 +11,7 @@ import RepostPage from "../pages/RepostPage";
 import { SearchPage } from "../pages/SearchPage";
 import { PlaylistPage } from "../pages/PlaylistPage";
 import { PlaylistDetailPage } from "../pages/PlaylistDetailPage";
+import HistoryPage from "../pages/HistoryPage";
 
 export default function UserRoutes() {
   return (
@@ -28,6 +29,7 @@ export default function UserRoutes() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/playlists" element={<PlaylistPage />} />
         <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
+        <Route path="/history" element={<HistoryPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/home" replace />} />
     </Routes>

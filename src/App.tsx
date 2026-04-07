@@ -9,6 +9,7 @@ import { MusicPlayerProvider } from "./context/MusicPlayerContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import { PlaylistProvider } from "./context/PlaylistContext";
 import { AuthProvider } from "./context/AuthContext";
+import { HistoryProvider } from "./context/HistoryContext";
 import { ProtectedRoute } from "./components/routes/ProtectedRoute";
 
 
@@ -25,7 +26,8 @@ function App() {
     <AuthProvider> {/* QUẢN LÝ AUTHENTICATION + ROLE */}
     <FavoritesProvider> {/* QUẢN LÝ TRẠNG THÁI LIKE TOÀN CỤC */}
     <PlaylistProvider>
-      <MusicPlayerProvider> {/* QUẢN LÝ PLAYER */}
+      <HistoryProvider> {/* QUẢN LÝ LỊCH SỬ NGHE NHẠC */}
+        <MusicPlayerProvider> {/* QUẢN LÝ PLAYER */}
         <BrowserRouter>
           <ToastContainer theme="dark" position="top-right" autoClose={3000} />
           
@@ -61,6 +63,7 @@ function App() {
           
         </BrowserRouter>
       </MusicPlayerProvider>
+      </HistoryProvider>
       </PlaylistProvider>
     </FavoritesProvider>
     </AuthProvider>
