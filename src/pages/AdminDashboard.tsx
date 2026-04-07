@@ -40,7 +40,7 @@ export const AdminDashboard = () => {
       console.log('📋 AdminDashboard: Response from API:', response);
       
       // Handle different response formats
-      let songList = Array.isArray(response) ? response : (response?.data || response?.songs || []);
+      let songList = Array.isArray(response) ? response : (response?.data || (response as any)?.songs || []);
       
       if (!Array.isArray(songList)) {
         console.error('❌ Songs is not an array:', songList);
@@ -197,14 +197,14 @@ export const AdminDashboard = () => {
                           <td className="px-6 py-4">
                             <div className="flex justify-center gap-2">
                               <button
-                                onClick={() => updateSongStatus(song._id || song.id, 'approved')}
+                                onClick={() => updateSongStatus((song._id || song.id) as string, 'approved')}
                                 disabled={updateLoading === (song._id || song.id) || song.status === 'approved'}
                                 className="px-3 py-2 bg-[#1ed760] text-black hover:bg-[#1ed760]/80 disabled:opacity-50 rounded font-semibold transition-all text-sm"
                               >
                                 {updateLoading === (song._id || song.id) ? 'Đang...' : 'Phê duyệt'}
                               </button>
                               <button
-                                onClick={() => updateSongStatus(song._id || song.id, 'rejected')}
+                                onClick={() => updateSongStatus((song._id || song.id) as string, 'rejected')}
                                 disabled={updateLoading === (song._id || song.id) || song.status === 'rejected'}
                                 className="px-3 py-2 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 rounded font-semibold transition-all text-sm"
                               >

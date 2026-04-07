@@ -1,7 +1,7 @@
 // src/pages/ProfilePage.tsx
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { UserPlus, UserCheck, Loader2, Heart, Repeat2, Play, Settings, Shuffle, CheckCircle2, Clock } from 'lucide-react';
+import { UserPlus, UserCheck, Loader2, Heart, Play, Settings, Shuffle, CheckCircle2 } from 'lucide-react';
 import { userService } from '../services/userService';
 import { followService } from '../services/followService';
 import { songService } from '../services/songService';
@@ -10,69 +10,15 @@ import api from '../api/api';
 import { EditProfileModal } from '../components/profile/EditProfileModal';
 import { toast } from 'react-toastify';
 import { useMusicPlayer } from '../context/MusicPlayerContext';
-import { useFavorites } from '../context/FavoritesContext';
 
 const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
 // --- COMPONENT THẺ BÀI HÁT (TÍCH HỢP TIM & REPOST) ---
 const ProfileSongItem = ({ song, onPlay, queue, isPlaying }: any) => {
-  const { isLiked, toggleLike } = useFavorites();
-  const [likeLoading, setLikeLoading] = useState(false);
-  const [isReposted, setIsReposted] = useState(false);
-  const [repostLoading, setRepostLoading] = useState(false);
-
-  // Kiểm tra trạng thái repost
-  useEffect(() => {
-    const checkRepost = async () => {
-      try {
-        const me: any = await userService.getMe();
-        const res: any = await repostService.getUserReposts(me._id || me.id);
-        const userReposts = res.data?.reposts || [];
-        setIsReposted(userReposts.some((r: any) => r.repostedItem?._id === song.id));
-      } catch (error) { }
-    };
-    checkRepost();
-  }, [song.id]);
-
-  const handleLike = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (likeLoading) return;
-    setLikeLoading(true);
-    try {
-      await toggleLike(song.id);
-    } catch (err) {
-      toast.error("Lỗi khi yêu thích bài hát!");
-    } finally {
-      setLikeLoading(false);
-    }
-  };
-
-  const handleRepost = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (repostLoading) return;
-    setRepostLoading(true);
-    try {
-      if (isReposted) {
-        await repostService.deleteRepost(song.id);
-        setIsReposted(false);
-        toast.success("Đã hủy đăng lại!");
-      } else {
-        await repostService.createRepost({ itemId: song.id, itemType: 'Song' });
-        setIsReposted(true);
-        toast.success("Đã đăng lại bài hát!");
-      }
-    } catch (err) {
-      toast.info("Có lỗi xảy ra, vui lòng thử lại!");
-    } finally {
-      setRepostLoading(false);
-    }
-  };
-
   return (
-    <div 
-      className={`flex items-center justify-between p-3 rounded-md transition group cursor-pointer ${
-        isPlaying ? 'bg-white/10' : 'hover:bg-white/5'
-      }`}
+    <div
+      className={`flex items-center justify-between p-3 rounded-md transition group cursor-pointer ${isPlaying ? 'bg-white/10' : 'hover:bg-white/5'
+        }`}
       onClick={() => onPlay(song, { queue })}
     >
       <div className="flex items-center gap-4 flex-1">
@@ -112,37 +58,37 @@ const ProfileSongItem = ({ song, onPlay, queue, isPlaying }: any) => {
 
 export const ProfilePage = () => {
   const navigate = useNavigate();
-  const { userId } = useParams<{ userId: string }>(); 
-  const { playSong, currentSong, isPlaying } = useMusicPlayer();
-  
+  const { userId } = useParams<{ userId: string }>();
+  const { playSong, currentSong } = useMusicPlayer();
+
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
+
   // STATE FOLLOW & SONGS
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
-  const [userSongs, setUserSongs] = useState<any[]>([]); 
+  const [userSongs, setUserSongs] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'Playlist' | 'Reposts' | 'Likes'>('Reposts');
   const [tabLoading, setTabLoading] = useState(false);
-  
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const isOwnProfile = !userId || (currentUser && userId === currentUser._id);
 
   const getFileUrl = (url: string) => {
     if (!url) return "https://images.unsplash.com/photo-1493225457124-a1a2a5f5f4b0";
-    if (url.startsWith('http')) return url; 
-    const filename = url.replace(/^.*[\\\/]/, ''); 
-    return `${BACKEND_URL}/uploads/${filename}`; 
+    if (url.startsWith('http')) return url;
+    const filename = url.replace(/^.*[\\\/]/, '');
+    return `${BACKEND_URL}/uploads/${filename}`;
   };
 
   const getAvatarUrl = (url: string) => {
     if (!url) return "https://ui-avatars.com/api/?name=User&background=1ed760&color=fff";
-    if (url.startsWith('http')) return url; 
-    const filename = url.replace(/^.*[\\\/]/, ''); 
-    return `${BACKEND_URL}/uploads/${filename}`; 
+    if (url.startsWith('http')) return url;
+    const filename = url.replace(/^.*[\\\/]/, '');
+    return `${BACKEND_URL}/uploads/${filename}`;
   };
 
   const fetchTabData = useCallback(async (tab: string, targetId: string) => {
@@ -156,7 +102,7 @@ export const ProfilePage = () => {
         const res: any = await repostService.getUserReposts(targetId);
         songs = (res.data?.reposts || []).map((r: any) => r.repostedItem).filter(Boolean);
       } else if (tab === 'Likes' && isOwnProfile) {
-        const res: any = await userService.getMe(); // To refresh current user
+        await userService.getMe(); // To refresh current user
         const likesRes: any = await api.get('/favorites/my-liked'); // Using raw api if service is limited
         songs = likesRes.data || likesRes || [];
       }
@@ -194,10 +140,10 @@ export const ProfilePage = () => {
           followService.getFollowers(targetId),
           followService.getFollowing(targetId)
         ]);
-        
+
         setFollowersCount(followersRes.count || followersRes.followers?.length || 0);
         setFollowingCount(followingRes.count || followingRes.following?.length || 0);
-        
+
         // Fetch initial tab data
         await fetchTabData(activeTab, targetId);
       }
@@ -243,8 +189,8 @@ export const ProfilePage = () => {
     <div className="w-full h-full text-white animate-fade-in pb-10 bg-[#121212]">
       {/* HEADER BAR */}
       <div className="flex items-center justify-between sticky top-0 bg-[#121212]/95 backdrop-blur-sm z-10 py-4 px-6">
-        <button 
-          onClick={() => navigate(-1)} 
+        <button
+          onClick={() => navigate(-1)}
           className="w-10 h-10 flex items-center justify-center bg-black rounded-full hover:bg-black/80 transition shadow-lg"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -259,9 +205,9 @@ export const ProfilePage = () => {
       <div className="flex flex-col items-center mt-6 px-6">
         <div className="relative group">
           <div className="w-44 h-44 rounded-full overflow-hidden shadow-2xl bg-[#282828] border-4 border-black/20">
-            <img 
-              src={getAvatarUrl(profileData?.avatar)} 
-              alt="Avatar" 
+            <img
+              src={getAvatarUrl(profileData?.avatar)}
+              alt="Avatar"
               className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
             />
           </div>
@@ -288,21 +234,20 @@ export const ProfilePage = () => {
         {/* ACTION BUTTONS */}
         <div className="flex items-center gap-4 mb-10">
           {isOwnProfile ? (
-            <button 
-              onClick={() => setIsEditModalOpen(true)} 
+            <button
+              onClick={() => setIsEditModalOpen(true)}
               className="px-6 py-2.5 rounded-full bg-[#2a2a2a] text-sm font-bold text-white hover:bg-[#3e3e3e] transition border border-[#404040]"
             >
               Edit profile
             </button>
           ) : (
-            <button 
-              onClick={handleToggleFollow} 
-              disabled={followLoading} 
-              className={`px-8 py-2.5 rounded-full font-bold text-sm transition flex items-center gap-2 ${
-                isFollowing 
-                  ? 'bg-transparent border border-[#727272] text-white hover:border-white' 
+            <button
+              onClick={handleToggleFollow}
+              disabled={followLoading}
+              className={`px-8 py-2.5 rounded-full font-bold text-sm transition flex items-center gap-2 ${isFollowing
+                  ? 'bg-transparent border border-[#727272] text-white hover:border-white'
                   : 'bg-[#1ed760] text-black hover:scale-105 active:scale-95'
-              }`}
+                }`}
             >
               {followLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isFollowing ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
               {isFollowing ? 'Following' : 'Follow'}
@@ -313,7 +258,7 @@ export const ProfilePage = () => {
             <Shuffle className="w-6 h-6" />
           </button>
 
-          <button 
+          <button
             className="w-14 h-14 flex items-center justify-center bg-[#1ed760] rounded-full text-black hover:scale-105 transition shadow-[0_8px_16px_rgba(30,215,96,0.3)] active:scale-95"
             onClick={() => userSongs.length > 0 && playSong(userSongs[0], { queue: userSongs })}
           >
@@ -329,9 +274,8 @@ export const ProfilePage = () => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`pb-3 text-sm font-bold transition relative ${
-                activeTab === tab ? 'text-white' : 'text-[#a7a7a7] hover:text-white'
-              }`}
+              className={`pb-3 text-sm font-bold transition relative ${activeTab === tab ? 'text-white' : 'text-[#a7a7a7] hover:text-white'
+                }`}
             >
               {tab === 'Likes' ? (
                 <span className="flex items-center gap-1.5">Likes <Heart className="w-3.5 h-3.5" /></span>
@@ -363,10 +307,10 @@ export const ProfilePage = () => {
             </div>
           ) : (
             userSongs.map((song, idx) => (
-              <ProfileSongItem 
-                key={song.id || idx} 
-                song={song} 
-                onPlay={playSong} 
+              <ProfileSongItem
+                key={song.id || idx}
+                song={song}
+                onPlay={playSong}
                 queue={userSongs}
                 isPlaying={currentSong?.id === song.id}
               />

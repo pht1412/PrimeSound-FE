@@ -3,8 +3,6 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { userService } from '../../services/userService';
 import { AUTH_CHANGED_EVENT } from '../../utils/authEvents';
-import { useAuth } from '../../context/AuthContext';
-import { toast } from 'react-toastify';
 
 const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
@@ -12,9 +10,7 @@ export const Header = () => {
   const [user, setUser] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem('accessToken')));
   const [searchTerm, setSearchTerm] = useState(''); // State lưu từ khóa
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
-  const { logout } = useAuth();
 
   useEffect(() => {
     const sync = () => setIsLoggedIn(Boolean(localStorage.getItem('accessToken')));
@@ -37,13 +33,6 @@ export const Header = () => {
     if (url.startsWith('http')) return url;
     const filename = url.replace(/^.*[\\\/]/, '');
     return `${BACKEND_URL}/uploads/${filename}`;
-  };
-
-  // Hàm đăng xuất
-  const handleLogout = () => {
-    logout();
-    toast.success('Đã đăng xuất thành công');
-    navigate('/auth');
   };
 
   useEffect(() => {
