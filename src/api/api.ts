@@ -38,7 +38,10 @@ apiClient.interceptors.response.use(
     // Bắt lỗi chung từ backend gửi về
     if (error.response?.status === 401) {
       console.error("Token hết hạn hoặc bạn chưa đăng nhập!");
-      // Có thể gọi hàm logout hoặc xóa token ở đây
+      // Xóa token và redirect về auth page
+      localStorage.removeItem('accessToken');
+      // Reload page để AuthContext kiểm tra lại
+      window.location.href = '/auth';
     }
 
     // Trả lỗi về cho component tự xử lý tiếp nếu cần

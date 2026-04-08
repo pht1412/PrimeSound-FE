@@ -1,4 +1,4 @@
-﻿// src/pages/HomePage.tsx
+// src/pages/HomePage.tsx
 import { useState, useEffect } from "react";
 import { SongCommentsPanel } from "../components/comments/SongCommentsPanel";
 import { songService } from "../services/songService";
@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { userService } from "../services/userService";
 import { followService } from "../services/followService";
 import { toast } from "react-toastify";
+import { useComingSoon } from "../context/ComingSoonContext";
 
 const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
@@ -18,6 +19,7 @@ interface HomeSong extends Song {
 
 export const Home = () => {
   const navigate = useNavigate();
+  const { showComingSoon } = useComingSoon();
   const { playSong, currentSong, isPlaying } = useMusicPlayer();
   const [trendingSong, setTrendingSong] = useState<HomeSong | null>(null);
   const [topArtists, setTopArtists] = useState<HomeSong[]>([]);
@@ -207,7 +209,7 @@ export const Home = () => {
         <div className="bg-[#1a1a1a] p-6 rounded-3xl shadow-lg">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-white">Discovery Songs</h3>
-            <a href="#" className="text-sm text-[#a7a7a7] hover:text-white font-medium transition">See All</a>
+            <button onClick={showComingSoon} className="text-sm text-[#a7a7a7] hover:text-white font-medium transition cursor-pointer">See All</button>
           </div>
           <div className="flex gap-6 overflow-x-auto custom-scrollbar pb-4">
             {topArtists.map((song) => (
@@ -227,7 +229,7 @@ export const Home = () => {
         <div className="bg-[#1a1a1a] p-6 rounded-3xl shadow-lg mb-8">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-white">Latest Releases</h3>
-            <a href="#" className="text-sm text-[#a7a7a7] hover:text-white font-medium transition">See All</a>
+            <button onClick={showComingSoon} className="text-sm text-[#a7a7a7] hover:text-white font-medium transition cursor-pointer">See All</button>
           </div>
           <div className="flex gap-6 overflow-x-auto custom-scrollbar pb-4">
             {billboards.map((song) => (
@@ -324,10 +326,10 @@ export const Home = () => {
               {topArtists.length === 0 && <p className="text-gray-500 text-sm">Chưa có dữ liệu.</p>}
             </div>
 
-            <button className="w-full mt-6 py-3 border border-[#4d4d4d] rounded-full text-sm font-bold text-white tracking-widest uppercase hover:border-white transition">
+            <button onClick={showComingSoon} className="w-full mt-6 py-3 border border-[#4d4d4d] rounded-full text-sm font-bold text-white tracking-widest uppercase hover:border-white transition cursor-pointer">
               View All
             </button>
-          </div>
+        </div>
         )}
       </div>
 

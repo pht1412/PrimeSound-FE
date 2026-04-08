@@ -14,13 +14,22 @@ pipeline {
             }
         }
 
-        stage('Đóng gói Front-end') {
+        stage('Đóng gói & Đẩy lên Docker Hub') {
             steps {
-                script {
-                    // Build Image từ Dockerfile trong thư mục gốc của Repo FE
-                    docker.withRegistry('', DOCKER_HUB_CREDS_ID) {
-                        def feImage = docker.build("${IMAGE_NAME}:latest", ".")
-                        feImage.push()
+                // Sử dụng credentialsId để lấy username/password an toàn
+                withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_CREDS_ID}", passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                    script {
+                        // 1. Đăng nhập Docker Hub (Dùng lệnh bat cho Windows)
+                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                        
+                        // 2. Build Image
+                        bat "docker build -t ${IMAGE_NAME}:latest ."
+                        
+                        // 3. Push Image
+                        bat "docker push ${IMAGE_NAME}:latest"
+                        
+                        // 4. Logout để bảo mật
+                        bat "docker logout"
                     }
                 }
             }

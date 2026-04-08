@@ -1,6 +1,7 @@
 // src/context/MusicPlayerContext.tsx
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from "react";
 import { songService } from "../services/songService";
+import { useHistory } from "./HistoryContext";
 
 export interface Song {
   id: string;
@@ -52,6 +53,9 @@ export const MusicPlayerProvider = ({ children }: { children: React.ReactNode })
   const [duration, setDuration] = useState(0);
   const [shuffle, setShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>("off");
+
+  // Hook để thêm bài hát vào lịch sử
+  const { addToHistory } = useHistory();
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const queueRef = useRef<Song[]>([]);
@@ -164,6 +168,17 @@ export const MusicPlayerProvider = ({ children }: { children: React.ReactNode })
       return; 
     }
     // ================= KẾT THÚC: CHỐT CHẶN =================
+
+    // Thêm bài hát vào lịch sử nghe nhạc
+    addToHistory({
+      id: song.id,
+      title: song.title,
+      artist: song.artist,
+      cover: song.cover,
+      audioUrl: song.audioUrl,
+      playedAt: Date.now()
+    });
+
     if (opts?.queue && opts.queue.length > 0) {
       const q = [...opts.queue];
       const idx = q.findIndex((s) => s.id === song.id);

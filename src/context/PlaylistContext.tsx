@@ -1,6 +1,7 @@
 // src/context/PlaylistContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { playlistService } from '../services/playlistService';
+import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
 import { toast } from 'react-toastify';
 
 export interface PlaylistSummary {
@@ -25,7 +26,7 @@ export const PlaylistProvider = ({ children }: { children: React.ReactNode }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   // Hàm tải danh sách Playlist từ API
-  const fetchPlaylists = async () => {
+  const fetchPlaylists = useCallback(async () => {
     try {
       setIsLoading(true);
       // Lấy 50 playlist để cover phần lớn nhu cầu của user thông thường
@@ -38,17 +39,22 @@ export const PlaylistProvider = ({ children }: { children: React.ReactNode }) =>
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Tự động tải Playlist khi người dùng vào app
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      fetchPlaylists();
-    } else {
-      setIsLoading(false);
-    }
   }, []);
+
+  // Tự động tải Playlist khi có token; xóa khi logout
+  useEffect(() => {
+    const syncFromToken = () => {
+      const token = localStorage.getItem('accessToken');
+      if (token) void fetchPlaylists();
+      else {
+        setPlaylists([]);
+        setIsLoading(false);
+      }
+    };
+    syncFromToken();
+    window.addEventListener(AUTH_CHANGED_EVENT, syncFromToken);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, syncFromToken);
+  }, [fetchPlaylists]);
 
   // Hàm tạo Playlist mới và tự động cập nhật danh sách
   const createNewPlaylist = async (name: string, description?: string) => {

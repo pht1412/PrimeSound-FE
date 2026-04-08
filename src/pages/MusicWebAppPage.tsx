@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, type KeyboardEvent, type UIEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type UIEvent } from "react";
 import {
   Clock,
   Download,
@@ -25,6 +25,7 @@ import {
   Volume2,
   X,
 } from "lucide-react";
+import { useComingSoon } from "../context/ComingSoonContext";
 
 const THEME = {
   accent: "#1DB954",
@@ -97,6 +98,7 @@ const initialComments: Comment[] = [
 ];
 
 export default function MusicWebAppPage() {
+  const { showComingSoon } = useComingSoon();
   const [isPlaying, setIsPlaying] = useState(true);
   const [activeSong, setActiveSong] = useState(1);
   const [progress, setProgress] = useState(35);
@@ -441,12 +443,12 @@ export default function MusicWebAppPage() {
             <Music size={20} className="text-white/80" />
           </div>
           <div className="flex flex-col justify-center overflow-hidden">
-            <a href="#" className="truncate text-sm font-bold text-white hover:underline">
+            <button onClick={showComingSoon} className="truncate text-sm font-bold text-white hover:underline text-left cursor-pointer">
               {currentTrack.title}
-            </a>
-            <a href="#" className="truncate text-xs text-[#B3B3B3] hover:text-white hover:underline">
+            </button>
+            <button onClick={showComingSoon} className="truncate text-xs text-[#B3B3B3] hover:text-white hover:underline text-left cursor-pointer">
               {currentTrack.artist}
-            </a>
+            </button>
           </div>
           <button className="ml-2 text-[#1DB954] transition-transform hover:scale-110">
             <Heart size={16} fill="currentColor" />

@@ -14,7 +14,17 @@ type RegisterPayload = {
 };
 
 type LoginResponse = {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+    avatar: string;
+    role: 'user' | 'admin';
+    isVerified: boolean;
+  };
+  message: string;
 };
 
 export const authService = {

@@ -1,6 +1,10 @@
 // src/context/FavoritesContext.tsx
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { favoriteService } from '../services/favoriteService';
+import { AUTH_CHANGED_EVENT } from '../utils/authEvents';
+import { useAuth } from '../context/AuthContext';
+
+
 
 interface FavoritesContextType {
   likedSongIds: Set<string>;
@@ -16,9 +20,17 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(undefin
 export const FavoritesProvider = ({ children }: { children: React.ReactNode }) => {
   const [likedSongIds, setLikedSongIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated } = useAuth(); // ✅ Check xem user có đăng nhập không
 
   const initializeLikedSongs = useCallback(async () => {
+    // ✅ Chỉ gọi API nếu user đã đăng nhập
+    if (!isAuthenticated) {
+      console.log('⏭️  FavoritesContext: Skipping initializeLikedSongs (not authenticated)');
+      return;
+    }
+
     try {
+      console.log('🔄 FavoritesContext: initializeLikedSongs() called');
       setIsLoading(true);
       const res: any = await favoriteService.getMyLikedSongs();
       
@@ -30,12 +42,13 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
       );
       
       setLikedSongIds(likedIds);
+      console.log('✅ FavoritesContext: Liked songs loaded:', likedIds.size);
     } catch (error) {
-      console.error('❌ Lỗi khi load danh sách bài hát yêu thích:', error);
+      console.error('❌ FavoritesContext: Lỗi khi load danh sách bài hát yêu thích:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const toggleLike = useCallback(async (songId: string) => {
     const currentlyLiked = likedSongIds.has(songId);
@@ -72,7 +85,17 @@ export const FavoritesProvider = ({ children }: { children: React.ReactNode }) =
   }, [likedSongIds]);
 
   useEffect(() => {
-    initializeLikedSongs();
+    const syncFromToken = () => {
+      const token = localStorage.getItem('accessToken');
+      if (token) void initializeLikedSongs();
+      else {
+        setLikedSongIds(new Set());
+        setIsLoading(false);
+      }
+    };
+    syncFromToken();
+    window.addEventListener(AUTH_CHANGED_EVENT, syncFromToken);
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, syncFromToken);
   }, [initializeLikedSongs]);
 
   return (

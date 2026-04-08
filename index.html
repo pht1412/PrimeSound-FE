@@ -1,13 +1,93 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>front-end</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/src/assets/LogoPrime.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrimeSound - Nghe nhạc trực tuyến</title>
+</head>
+
+<body>
+  <div id="root">
+    <style>
+      .splash-screen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        width: 100%;
+        background-color: #121212;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        margin: 0;
+      }
+
+      .splash-logo {
+        height: 120px;
+        width: auto;
+        margin-bottom: 30px;
+        animation: drop-in 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards, pulse-glow 2s infinite ease-in-out 0.8s;
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      .splash-text {
+        font-size: 3rem;
+        font-weight: 900;
+        letter-spacing: -0.05em;
+        margin: 0;
+        display: flex;
+        align-items: center;
+      }
+
+      .text-outline {
+        color: #000000;
+        -webkit-text-stroke: 1.5px #1ed760;
+        text-shadow: 0 0 20px rgba(30, 215, 96, 0.4);
+      }
+
+      .text-fill {
+        color: #1ed760;
+      }
+
+      @keyframes drop-in {
+        0% {
+          transform: translateY(-30px);
+          opacity: 0;
+        }
+
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes pulse-glow {
+        0% {
+          filter: drop-shadow(0 0 10px rgba(30, 215, 96, 0.3));
+          transform: scale(1);
+        }
+
+        50% {
+          filter: drop-shadow(0 0 25px rgba(30, 215, 96, 0.6));
+          transform: scale(1.05);
+        }
+
+        100% {
+          filter: drop-shadow(0 0 10px rgba(30, 215, 96, 0.3));
+          transform: scale(1);
+        }
+      }
+    </style>
+    <div class="splash-screen">
+      <img src="/src/assets/LogoPrime.png" alt="Loading Logo" class="splash-logo" />
+      <h1 class="splash-text">
+        <span class="text-outline">Prime</span><span class="text-fill">Sound</span>
+      </h1>
+    </div>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
