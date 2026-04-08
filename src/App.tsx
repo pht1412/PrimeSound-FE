@@ -5,12 +5,15 @@ import "react-toastify/dist/ReactToastify.css";
 import AuthPage from "./pages/AuthPage";
 import UserRoutes from "./routes/UserRoutes";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import NotFoundPage from "./pages/NotFoundPage";
+
 import { MusicPlayerProvider } from "./context/MusicPlayerContext";
 import { FavoritesProvider } from "./context/FavoritesContext";
 import { PlaylistProvider } from "./context/PlaylistContext";
 import { AuthProvider } from "./context/AuthContext";
 import { HistoryProvider } from "./context/HistoryContext";
 import { ProtectedRoute } from "./components/routes/ProtectedRoute";
+import { ComingSoonProvider } from "./context/ComingSoonContext";
 
 
 function App() {
@@ -28,6 +31,7 @@ function App() {
     <PlaylistProvider>
       <HistoryProvider> {/* QUẢN LÝ LỊCH SỬ NGHE NHẠC */}
         <MusicPlayerProvider> {/* QUẢN LÝ PLAYER */}
+        <ComingSoonProvider> {/* QUẢN LÝ POPUP COMING SOON */}
         <BrowserRouter>
           <ToastContainer theme="dark" position="top-right" autoClose={3000} />
           
@@ -59,9 +63,13 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            
+            {/* Nhánh 4: Bắt tất cả các route sai ở root level (VD: /phat, /xyz) */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
           
         </BrowserRouter>
+        </ComingSoonProvider>
       </MusicPlayerProvider>
       </HistoryProvider>
       </PlaylistProvider>

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { userService } from '../../services/userService';
 import { AUTH_CHANGED_EVENT } from '../../utils/authEvents';
+import { useComingSoon } from '../../context/ComingSoonContext';
 
 const BACKEND_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000';
 
@@ -11,6 +12,7 @@ export const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem('accessToken')));
   const [searchTerm, setSearchTerm] = useState(''); // State lưu từ khóa
   const navigate = useNavigate();
+  const { showComingSoon } = useComingSoon();
 
   useEffect(() => {
     const sync = () => setIsLoggedIn(Boolean(localStorage.getItem('accessToken')));
@@ -60,12 +62,12 @@ export const Header = () => {
         <Link to="/home" className="text-[#1ed760] font-medium text-[15px] tracking-wide hover:opacity-80 transition">
           HOME
         </Link>
-        <Link to="/live" className="text-white font-medium text-[15px] tracking-wide hover:text-[#1ed760] transition">
+        <button onClick={showComingSoon} className="text-white font-medium text-[15px] tracking-wide hover:text-[#1ed760] transition">
           LIVE
-        </Link>
-        <Link to="/podcast" className="text-white font-medium text-[15px] tracking-wide hover:text-[#1ed760] transition">
+        </button>
+        <button onClick={showComingSoon} className="text-white font-medium text-[15px] tracking-wide hover:text-[#1ed760] transition">
           PODCAST
-        </Link>
+        </button>
       </nav>
 
       {/* Cụm ở giữa: Search Bar */}

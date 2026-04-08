@@ -6,6 +6,7 @@ import { toast } from "react-toastify"; // Import hàm gọi popup
 import InputField from "../components/login/InputField";
 import { authService } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
+import { useComingSoon } from "../context/ComingSoonContext";
 
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
@@ -15,6 +16,7 @@ export default function AuthPage() {
 
   const navigate = useNavigate(); // Khởi tạo hàm chuyển trang
   const { login, isAuthenticated, isAdmin, isLoading: authLoading } = useAuth(); // Lấy auth context
+  const { showComingSoon } = useComingSoon();
 
   useEffect(() => {
     if (searchParams.get("signup") === "1") setIsLogin(false);
@@ -31,12 +33,12 @@ export default function AuthPage() {
   // Nếu đã đăng nhập rồi, redirect dựa trên role
   useEffect(() => {
     console.log('📍 AuthPage: useEffect triggered - isAuthenticated:', isAuthenticated, ', isAdmin:', isAdmin, ', isLoading:', authLoading);
-    
+
     if (authLoading) {
       console.log('⏳ AuthPage: Still loading auth, skipping redirect');
       return; // Không redirect khi còn loading
     }
-    
+
     if (isAuthenticated) {
       console.log('🚀 AuthPage: Redirecting to', isAdmin ? '/admin' : '/home');
       if (isAdmin) {
@@ -52,11 +54,11 @@ export default function AuthPage() {
     if (errorMsg) setErrorMsg("");
   };
 
-const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
-    
+
     try {
       if (isLogin) {
         // === LUỒNG ĐĂNG NHẬP (GỌI API THẬT) ===
@@ -64,22 +66,22 @@ const handleSubmit = async (e: FormEvent) => {
           email: formData.email,
           password: formData.password,
         });
-        
+
         console.log('🔍 Debug login response:', response);
-        
+
         // 1. Lưu token thật vào F12 -> Application -> Local Storage
-        localStorage.setItem("accessToken", response.accessToken); 
+        localStorage.setItem("accessToken", response.accessToken);
         localStorage.setItem("refreshToken", response.refreshToken);
-        
+
         // 2. Cập nhật AuthContext với token và user data
         login(response.accessToken, response.user);
-        
+
         // 3. Hiện popup thành công
         toast.success("Đăng nhập thành công! Đang chuyển hướng...");
-        
+
         // 4. Chuyển hướng sẽ được xử lý bởi useEffect ở trên
         // Nó sẽ check role và redirect tới /admin hoặc /home 
-        
+
       } else {
         // === LUỒNG ĐĂNG KÝ (GỌI API THẬT) ===
         await authService.register({
@@ -89,9 +91,9 @@ const handleSubmit = async (e: FormEvent) => {
           // Gửi thêm số điện thoại nếu backend của bạn có trường này:
           // number: formData.number 
         });
-        
+
         toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-        
+
         // Xóa pass cũ, tự động chuyển UI về tab Đăng nhập
         setFormData({ ...formData, password: "" });
         setIsLogin(true);
@@ -99,7 +101,7 @@ const handleSubmit = async (e: FormEvent) => {
     } catch (error: any) {
       // Axios interceptor đã bóc tách lỗi giúp chúng ta, giờ chỉ cần in ra
       setErrorMsg(error?.message || "Sai email hoặc mật khẩu, vui lòng thử lại!");
-      toast.error("Thao tác thất bại!"); 
+      toast.error("Thao tác thất bại!");
     } finally {
       setLoading(false);
     }
@@ -107,9 +109,9 @@ const handleSubmit = async (e: FormEvent) => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center py-10 px-4 animate-fade-in">
-      
+
       <div className="w-full max-w-[400px] flex flex-col items-center">
-        
+
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold tracking-tighter">
             Prime <span className="text-[#1ed760]">Sound</span> 🎵
@@ -124,7 +126,7 @@ const handleSubmit = async (e: FormEvent) => {
         <form onSubmit={handleSubmit} className="w-full space-y-5 animate-fade-up">
           {errorMsg && (
             <div className="spotify-error-box">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" /></svg>
               {errorMsg}
             </div>
           )}
@@ -153,12 +155,16 @@ const handleSubmit = async (e: FormEvent) => {
               {loading ? "Processing..." : (isLogin ? "Log In" : "Sign Up")}
             </button>
           </div>
-          
+
           {isLogin && (
             <div className="text-center mt-6">
-              <a href="#" className="text-white hover:text-[#1ed760] underline transition text-sm font-semibold">
+              <button
+                type="button"
+                onClick={showComingSoon}
+                className="text-white hover:text-[#1ed760] underline transition text-sm font-semibold"
+              >
                 Forgot your password?
-              </a>
+              </button>
             </div>
           )}
         </form>
@@ -171,7 +177,7 @@ const handleSubmit = async (e: FormEvent) => {
           <p className="text-[#a7a7a7] font-medium mb-5">
             {isLogin ? "Don't have an account?" : "Already have an account?"}
           </p>
-          <button 
+          <button
             type="button"
             onClick={() => { setIsLogin(!isLogin); setErrorMsg(""); }}
             className="btn-spotify-outline"
